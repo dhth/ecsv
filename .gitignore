@@ -1,0 +1,5 @@
+ecsv
+.quickrun
+cosign.key
+cosign.pub
+justfile
