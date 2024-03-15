@@ -13,7 +13,7 @@ var (
 			Bold(true).
 			Background(lipgloss.Color("#d3869b"))
 
-	modeStyle = fgStyle.Copy().
+	envStyle = fgStyle.Copy().
 			Align(lipgloss.Center).
 			Bold(true).
 			Background(lipgloss.Color("#b8bb26")).
@@ -26,13 +26,13 @@ var (
 	systemStyle = nonFgStyle.Copy().
 			Align(lipgloss.Left).
 			Bold(true).
-			Foreground(lipgloss.Color("#8ec07c")).
+			Foreground(lipgloss.Color("#83a598")).
 			Width(30)
 
 	inSyncStyle = nonFgStyle.Copy().
 			Align(lipgloss.Center).
 			Bold(true).
-			Foreground(lipgloss.Color("#fe8019")).
+			Foreground(lipgloss.Color("#b8bb26")).
 			Width(16)
 
 	outOfSyncStyle = nonFgStyle.Copy().

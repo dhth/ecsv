@@ -26,7 +26,7 @@ func (m model) View() string {
 	s += fmt.Sprintf("%s", systemStyle.Render("system"))
 
 	for _, env := range envs {
-		s += fmt.Sprintf("%s    ", modeStyle.Render(env))
+		s += fmt.Sprintf("%s    ", envStyle.Render(env))
 	}
 	s += "\n\n"
 	for _, sys := range m.systemNames {
