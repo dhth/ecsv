@@ -1,6 +1,6 @@
 package ui
 
-func newModel(envSeq []string, systems []System) model {
+func newModel(envSeq []string, systems []System, outFormat OutFormat) model {
 
 	resultMap := make(map[string]map[string]string)
 	var systemNames []string
@@ -27,10 +27,13 @@ func newModel(envSeq []string, systems []System) model {
 	}
 
 	return model{
+		outFormat:       outFormat,
 		results:         resultMap,
+		envSequence:     envSeq,
 		systems:         systems,
 		systemNames:     systemNames,
 		numResultsToGet: len(systems),
 		awsConfigs:      awsConfigs,
+		printWhenReady:  true,
 	}
 }

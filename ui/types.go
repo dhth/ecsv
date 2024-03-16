@@ -18,3 +18,21 @@ type System struct {
 	ServiceName   string
 	ContainerName string
 }
+
+type OutFormat uint
+
+const (
+	UnspecifiedFmt OutFormat = iota
+	PlainTextFmt
+	HTMLFmt
+)
+
+type HTMLDataRow struct {
+	Data   []string
+	InSync bool
+}
+type HTMLData struct {
+	Title   string
+	Columns []string
+	Rows    []HTMLDataRow
+}

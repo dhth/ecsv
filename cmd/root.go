@@ -15,6 +15,10 @@ func die(msg string, args ...any) {
 	os.Exit(1)
 }
 
+var (
+	format = flag.String("format", "", "output format to use, using this will disable TUI mode; available values: plaintext, html")
+)
+
 func Execute() {
 	currentUser, err := user.Current()
 	var defaultConfigFilePath string
@@ -29,6 +33,18 @@ func Execute() {
 	}
 
 	flag.Parse()
+
+	var outFormat ui.OutFormat
+	if *format != "" {
+		switch *format {
+		case "plaintext":
+			outFormat = ui.PlainTextFmt
+		case "html":
+			outFormat = ui.HTMLFmt
+		default:
+			die("ecsv only supports the following formats: plaintext, html")
+		}
+	}
 
 	if *configFilePath == "" {
 		die("config-file cannot be empty")
@@ -62,6 +78,6 @@ func Execute() {
 		die("No systems found in config file")
 	}
 
-	ui.RenderUI(envSequence, systems)
+	ui.RenderUI(envSequence, systems, outFormat)
 
 }

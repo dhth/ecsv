@@ -5,6 +5,7 @@ import (
 )
 
 type model struct {
+	outFormat       OutFormat
 	envSequence     []string
 	results         map[string]map[string]string
 	systemNames     []string
@@ -13,6 +14,8 @@ type model struct {
 	message         string
 	numResultsToGet int
 	numResults      int
+	printWhenReady  bool
+	outputPrinted   bool
 }
 
 func (m model) Init() tea.Cmd {

@@ -7,7 +7,7 @@
 across various environments.
 
 <p align="center">
-  <img src="./ecsv.gif?raw=true" alt="Usage" />
+  <img src="./assets/ecsv.gif?raw=true" alt="Usage" />
 </p>
 
 
@@ -65,6 +65,23 @@ systems:
 ```
 
 By default, `ecsv` will try to find the config file at `~/.config/ecsv.yml`.
+
+### Output Formats
+
+Besides being in TUI mode, `ecsv` can also output data in plaintext and HTML
+formats.
+
+```bash
+ecsv -format=plaintext
+ecsv -format=html
+```
+
+Using the latter will output HTML that, when served, looks as follows:
+
+<p align="center">
+  <img src="./assets/html.png" alt="Usage" />
+</p>
+
 
 Acknowledgements
 ---
