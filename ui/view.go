@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -23,10 +24,10 @@ const (
     <script src="https://cdn.tailwindcss.com"></script>
     <title>{{.Title}}</title>
 </head>
-<body class="bg-slate-900 text-xl font-bold">
+<body class="bg-slate-900 text-xl">
     <div class="container mx-auto p-4">
-        <h1 class="text-stone-50 text-2xl mb-4">{{.Title}}</h1>
-        <table class="table-auto">
+        <h1 class="text-stone-50 text-2xl mb-4 font-bold">{{.Title}}</h1>
+        <table class="table-auto font-bold">
             <thead>
                 <tr class="text-stone-50 bg-gray-700">
                     {{range .Columns -}}
@@ -48,6 +49,9 @@ const (
                 {{end -}}
             </tbody>
         </table>
+        <br>
+        <br>
+        <p class="text-stone-300 italic">Generated at {{.Timestamp}}</p>
     </div>
 </body>
 </html>
@@ -136,6 +140,7 @@ func (m model) renderHTML() string {
 	}
 	data.Columns = columns
 	data.Rows = rows
+	data.Timestamp = time.Now().Format("2006-01-02 15:04:05 MST")
 
 	tmpl, err := template.New("ecsv").Parse(templateText)
 	if err != nil {

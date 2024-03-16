@@ -32,7 +32,8 @@ type HTMLDataRow struct {
 	InSync bool
 }
 type HTMLData struct {
-	Title   string
-	Columns []string
-	Rows    []HTMLDataRow
+	Title     string
+	Columns   []string
+	Rows      []HTMLDataRow
+	Timestamp string
 }
