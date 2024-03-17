@@ -27,9 +27,10 @@ const (
 <body class="bg-slate-900 text-xl">
     <div class="container mx-auto p-4">
         <h1 class="text-stone-50 text-2xl mb-4 font-bold">{{.Title}}</h1>
-        <table class="table-auto font-bold">
+        <br>
+        <table class="table-auto font-bold text-left">
             <thead>
-                <tr class="text-stone-50 bg-gray-700">
+                <tr class="text-stone-50 bg-slate-700">
                     {{range .Columns -}}
                     <th class="px-4 py-2">{{.}}</th>
                     {{end -}}
@@ -40,7 +41,7 @@ const (
                     {{if .InSync}}
                 <tr class="text-green-600">
                     {{else}}
-                <tr class="text-red-600 underline">
+                <tr class="text-red-600">
                     {{end}}
                     {{range .Data -}}
                     <td class="px-4 py-2">{{.}}</td>
@@ -199,7 +200,9 @@ func (m model) renderCLIUI() string {
 		var style lipgloss.Style
 		var versions []string
 		for _, env := range m.envSequence {
-			versions = append(versions, m.results[sys][env])
+			if m.results[sys][env] != "" {
+				versions = append(versions, m.results[sys][env])
+			}
 		}
 		if allEqual(versions) {
 			style = inSyncStyle
