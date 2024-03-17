@@ -17,6 +17,8 @@ type model struct {
 	numResults      int
 	printWhenReady  bool
 	outputPrinted   bool
+	errors          []error
+	terminalWidth   int
 }
 
 func (m model) Init() tea.Cmd {

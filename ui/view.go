@@ -52,6 +52,18 @@ const (
         <br>
         <br>
         <p class="text-stone-300 italic">Generated at {{.Timestamp}}</p>
+
+        {{if .Errors }}
+        <br>
+        <hr>
+        <br>
+        <p class="text-red-600 font-bold italic">Errors</p>
+            <br>
+            {{range $index, $error := .Errors -}}
+            <p class="text-gray-400 italic">{{$index}}: {{$error}}</p>
+            <br>
+            {{end -}}
+        {{end -}}
     </div>
 </body>
 </html>
@@ -100,6 +112,16 @@ func (m model) renderPlainText() string {
 		}
 		s += "\n"
 	}
+
+	if len(m.errors) > 0 {
+		s += "\n"
+		s += "Errors"
+		s += "\n"
+		for index, err := range m.errors {
+			s += fmt.Sprintf("[%2d]: %s", index+1, err.Error())
+			s += "\n"
+		}
+	}
 	return s
 }
 
@@ -140,6 +162,9 @@ func (m model) renderHTML() string {
 	}
 	data.Columns = columns
 	data.Rows = rows
+	if len(m.errors) > 0 {
+		data.Errors = &m.errors
+	}
 	data.Timestamp = time.Now().Format("2006-01-02 15:04:05 MST")
 
 	tmpl, err := template.New("ecsv").Parse(templateText)
@@ -185,6 +210,16 @@ func (m model) renderCLIUI() string {
 			s += fmt.Sprintf("%s    ", style.Render(m.results[sys][env]))
 		}
 		s += "\n"
+	}
+
+	if len(m.errors) > 0 {
+		s += "\n"
+		s += errorHeadingStyle.Render("Errors")
+		s += "\n"
+		for index, err := range m.errors {
+			s += errorDetailStyle.Render(fmt.Sprintf("[%2d]: %s", index+1, err.Error()))
+			s += "\n"
+		}
 	}
 	return s
 }

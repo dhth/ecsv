@@ -10,9 +10,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		return m, tea.Quit
+	case tea.WindowSizeMsg:
+		m.terminalWidth = msg.Width
 	case processFinishedMsg:
 		if msg.err != nil {
-			m.results[msg.systemKey][msg.env] = string(ErrorFetchingVersion)
+			m.errors = append(m.errors, msg.err)
+			errorIndex := len(m.errors)
+			m.results[msg.systemKey][msg.env] = fmt.Sprintf("%s [%2d]", ErrorFetchingVersion, errorIndex)
 		} else {
 			if !msg.found {
 				m.results[msg.systemKey][msg.env] = string(SystemNotFound)

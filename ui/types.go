@@ -42,5 +42,6 @@ type HTMLData struct {
 	Title     string
 	Columns   []string
 	Rows      []HTMLDataRow
+	Errors    *[]error
 	Timestamp string
 }

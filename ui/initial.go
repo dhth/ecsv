@@ -39,6 +39,8 @@ func newModel(envSeq []string, systems []System, outFormat OutFormat, awsConfigS
 		}
 	}
 
+	errors := make([]error, 0)
+
 	return model{
 		outFormat:       outFormat,
 		results:         resultMap,
@@ -49,5 +51,6 @@ func newModel(envSeq []string, systems []System, outFormat OutFormat, awsConfigS
 		awsConfigSource: awsConfigSource,
 		awsConfigs:      awsConfigs,
 		printWhenReady:  true,
+		errors:          errors,
 	}
 }

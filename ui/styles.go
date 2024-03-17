@@ -64,4 +64,11 @@ var (
 	outOfSyncStylePlain = nonFgStyle.Copy().
 				Align(lipgloss.Center).
 				Width(16)
+
+	errorHeadingStyle = nonFgStyle.Copy().
+				Bold(true).
+				Foreground(lipgloss.Color("#fb4934"))
+
+	errorDetailStyle = nonFgStyle.Copy().
+				Foreground(lipgloss.Color("#665c54"))
 )
