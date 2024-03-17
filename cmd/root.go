@@ -16,7 +16,8 @@ func die(msg string, args ...any) {
 }
 
 var (
-	format = flag.String("format", "", "output format to use, using this will disable TUI mode; available values: plaintext, html")
+	format    = flag.String("format", "", "output format to use, using this will disable TUI mode; available values: plaintext, html")
+	awsCfgSrc = flag.String("aws-config-source", "shared-config-profile", "source of aws configuration; values: shared-config-profile, default")
 )
 
 func Execute() {
@@ -50,6 +51,20 @@ func Execute() {
 		die("config-file cannot be empty")
 	}
 
+	if *awsCfgSrc == "" {
+		die("aws-config-source cannot be empty")
+	}
+
+	var awsConfigSource ui.AWSConfigSource
+	switch *awsCfgSrc {
+	case "shared-config-profile":
+		awsConfigSource = ui.SharedCfgProfileSrc
+	case "default":
+		awsConfigSource = ui.DefaultCfg
+	default:
+		die("unsupported aws-config-source value provided")
+	}
+
 	configFilePathExp := expandTilde(*configFilePath)
 
 	_, err = os.Stat(configFilePathExp)
@@ -57,7 +72,7 @@ func Execute() {
 		die(cfgErrSuggestion(fmt.Sprintf("Error: file doesn't exist at %q", configFilePathExp)))
 	}
 
-	envSequence, systems, err := readConfig(configFilePathExp)
+	envSequence, systems, err := readConfig(configFilePathExp, awsConfigSource)
 	if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1)
@@ -78,6 +93,6 @@ func Execute() {
 		die("No systems found in config file")
 	}
 
-	ui.RenderUI(envSequence, systems, outFormat)
+	ui.RenderUI(envSequence, systems, outFormat, awsConfigSource)
 
 }

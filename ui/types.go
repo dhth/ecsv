@@ -9,6 +9,13 @@ type AWSConfig struct {
 	err    error
 }
 
+type AWSConfigSource uint
+
+const (
+	SharedCfgProfileSrc AWSConfigSource = iota
+	DefaultCfg
+)
+
 type System struct {
 	Key           string
 	Env           string

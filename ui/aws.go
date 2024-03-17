@@ -7,8 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 )
 
-func getAWSCfgKey(system *System) string {
+func getSharedProfileCfgKey(system *System) string {
 	return system.AWSProfile + ":" + system.AWSRegion
+}
+
+func getDefaultCfgKey(system *System) string {
+	return system.AWSRegion
 }
 
 func getAWSConfig(profile string, region string) (aws.Config, error) {
@@ -17,4 +21,13 @@ func getAWSConfig(profile string, region string) (aws.Config, error) {
 		config.WithSharedConfigProfile(profile))
 	return cfg, err
 
+}
+
+func getDefaultConfig(region string) (aws.Config, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(region))
+	if err != nil {
+		return cfg, err
+	}
+	return cfg, nil
 }
