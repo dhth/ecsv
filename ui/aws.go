@@ -9,45 +9,37 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-func getSharedProfileCfgKey(system *System) string {
-	return system.AWSProfile + ":" + system.AWSRegion
+func getAWSConfigKey(system System) string {
+	switch system.AWSConfigSourceType {
+	case SharedCfgProfileType, AssumeRoleCfgType:
+		return system.AWSConfigSource + ":" + system.AWSRegion
+	default:
+		return system.AWSRegion
+	}
 }
 
-func getRoleCfgKey(system *System) string {
-	return system.IAMRoleToAssume + ":" + system.AWSRegion
-}
+func getAWSConfig(system System) (aws.Config, error) {
+	var cfg aws.Config
+	var err error
+	switch system.AWSConfigSourceType {
+	case SharedCfgProfileType:
+		cfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(system.AWSRegion),
+			config.WithSharedConfigProfile(system.AWSConfigSource))
+	case AssumeRoleCfgType:
+		cfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(system.AWSRegion))
+		if err != nil {
+			return cfg, err
+		}
+		stsSvc := sts.NewFromConfig(cfg)
+		creds := stscreds.NewAssumeRoleProvider(stsSvc, system.AWSConfigSource)
 
-func getDefaultCfgKey(system *System) string {
-	return system.AWSRegion
-}
-
-func getAWSConfig(profile string, region string) (aws.Config, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(region),
-		config.WithSharedConfigProfile(profile))
+		cfg.Credentials = aws.NewCredentialsCache(creds)
+	default:
+		cfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(system.AWSRegion))
+	}
 	return cfg, err
 
-}
-
-func getDefaultConfig(region string) (aws.Config, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(region))
-	if err != nil {
-		return cfg, err
-	}
-	return cfg, nil
-}
-
-func getRoleConfig(roleArn string, region string) (aws.Config, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(region))
-	if err != nil {
-		return cfg, err
-	}
-
-	stsSvc := sts.NewFromConfig(cfg)
-	creds := stscreds.NewAssumeRoleProvider(stsSvc, roleArn)
-
-	cfg.Credentials = aws.NewCredentialsCache(creds)
-	return cfg, nil
 }

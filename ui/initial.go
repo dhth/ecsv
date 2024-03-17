@@ -1,6 +1,6 @@
 package ui
 
-func newModel(envSeq []string, systems []System, outFormat OutFormat, awsConfigSource AWSConfigSource) model {
+func newModel(envSeq []string, systems []System, outFormat OutFormat) model {
 
 	resultMap := make(map[string]map[string]string)
 	var systemNames []string
@@ -19,31 +19,11 @@ func newModel(envSeq []string, systems []System, outFormat OutFormat, awsConfigS
 			resultMap[system.Key] = make(map[string]string)
 		}
 		resultMap[system.Key][system.Env] = "..."
-	}
 
-	switch awsConfigSource {
-	case SharedCfgProfileSrc:
-		for _, system := range systems {
-			if !seenConfigs[getSharedProfileCfgKey(&system)] {
-				cfg, err := getAWSConfig(system.AWSProfile, system.AWSRegion)
-				awsConfigs[getSharedProfileCfgKey(&system)] = AWSConfig{cfg, err}
-				seenSystems[system.Key] = true
-			}
-		}
-	case DefaultCfg:
-		for _, system := range systems {
-			switch system.IAMRoleToAssume {
-			case "":
-				if !seenConfigs[getDefaultCfgKey(&system)] {
-					cfg, err := getDefaultConfig(system.AWSRegion)
-					awsConfigs[getDefaultCfgKey(&system)] = AWSConfig{cfg, err}
-				}
-			default:
-				if !seenConfigs[getRoleCfgKey(&system)] {
-					cfg, err := getRoleConfig(system.IAMRoleToAssume, system.AWSRegion)
-					awsConfigs[getRoleCfgKey(&system)] = AWSConfig{cfg, err}
-				}
-			}
+		if !seenConfigs[getAWSConfigKey(system)] {
+			cfg, err := getAWSConfig(system)
+			awsConfigs[getAWSConfigKey(system)] = AWSConfig{cfg, err}
+			seenSystems[system.Key] = true
 		}
 	}
 
@@ -56,7 +36,6 @@ func newModel(envSeq []string, systems []System, outFormat OutFormat, awsConfigS
 		systems:         systems,
 		systemNames:     systemNames,
 		numResultsToGet: len(systems),
-		awsConfigSource: awsConfigSource,
 		awsConfigs:      awsConfigs,
 		printWhenReady:  true,
 		errors:          errors,

@@ -9,22 +9,24 @@ type AWSConfig struct {
 	err    error
 }
 
-type AWSConfigSource uint
+type AWSConfigSourceType uint
 
 const (
-	SharedCfgProfileSrc AWSConfigSource = iota
-	DefaultCfg
+	DefaultCfgType AWSConfigSourceType = iota
+	SharedCfgProfileType
+	AssumeRoleCfgType
 )
 
 type System struct {
-	Key             string
-	Env             string
-	AWSProfile      string
-	AWSRegion       string
-	IAMRoleToAssume string
-	ClusterName     string
-	ServiceName     string
-	ContainerName   string
+	Key                 string
+	Env                 string
+	AWSConfigSourceType AWSConfigSourceType
+	AWSConfigSource     string
+	AWSRegion           string
+	IAMRoleToAssume     string
+	ClusterName         string
+	ServiceName         string
+	ContainerName       string
 }
 
 type OutFormat uint

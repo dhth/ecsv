@@ -18,18 +18,7 @@ func quitProg() tea.Cmd {
 func (m model) fetchSystemVersion(system System) tea.Cmd {
 	return func() tea.Msg {
 
-		var awsConfig AWSConfig
-		switch m.awsConfigSource {
-		case SharedCfgProfileSrc:
-			awsConfig = m.awsConfigs[getSharedProfileCfgKey(&system)]
-		case DefaultCfg:
-			switch system.IAMRoleToAssume {
-			case "":
-				awsConfig = m.awsConfigs[getDefaultCfgKey(&system)]
-			default:
-				awsConfig = m.awsConfigs[getRoleCfgKey(&system)]
-			}
-		}
+		awsConfig := m.awsConfigs[getAWSConfigKey(system)]
 		if awsConfig.err != nil {
 			return processFinishedMsg{
 				systemKey: system.Key,

@@ -37,13 +37,14 @@ systems:
 - key: service-a
   envs:
   - name: qa
-    aws-profile: qa
+    aws-config-source: profile:::qa
     aws-region: eu-central-1
     cluster: 1brd-qa
     service: service-a-fargate
     container-name: service-a-qa-Service
   - name: staging
     aws-profile: qa
+    aws-config-source: profile:::staging
     aws-region: eu-central-1
     cluster: 1brd-staging
     service: service-a-fargate
@@ -51,13 +52,13 @@ systems:
 - key: service-b
   envs:
   - name: qa
-    aws-profile: qa
+    aws-config-source: profile:::qa
     aws-region: eu-central-1
     cluster: 1brd-qa
     service: service-b-fargate
     container-name: service-b-qa-Service
   - name: staging
-    aws-profile: qa
+    aws-config-source: profile:::staging
     aws-region: eu-central-1
     cluster: 1brd-staging
     service: service-b-fargate

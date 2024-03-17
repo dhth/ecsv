@@ -17,13 +17,12 @@ type T struct {
 	Systems     []struct {
 		Key  string `yaml:"key"`
 		Envs []struct {
-			Name            string  `yaml:"name"`
-			AwsProfile      *string `yaml:"aws-profile"`
-			AwsRegion       string  `yaml:"aws-region"`
-			IAMRoleToAssume *string `yaml:"iam-role-to-assume"`
-			Cluster         string  `yaml:"cluster"`
-			Service         string  `yaml:"service"`
-			ContainerName   string  `yaml:"container-name"`
+			Name            string `yaml:"name"`
+			AwsConfigSource string `yaml:"aws-config-source"`
+			AwsRegion       string `yaml:"aws-region"`
+			Cluster         string `yaml:"cluster"`
+			Service         string `yaml:"service"`
+			ContainerName   string `yaml:"container-name"`
 		} `yaml:"envs"`
 	} `yaml:"systems"`
 }
@@ -39,7 +38,7 @@ func expandTilde(path string) string {
 	return path
 }
 
-func readConfig(filePath string, awsConfigSource ui.AWSConfigSource) ([]string, []ui.System, error) {
+func readConfig(filePath string) ([]string, []ui.System, error) {
 	localFile, err := os.ReadFile(filePath)
 	if err != nil {
 		os.Exit(1)
@@ -54,33 +53,36 @@ func readConfig(filePath string, awsConfigSource ui.AWSConfigSource) ([]string, 
 
 	for _, system := range t.Systems {
 		for _, env := range system.Envs {
-			if awsConfigSource == ui.SharedCfgProfileSrc {
-				if env.AwsProfile == nil {
-					return nil,
-						nil,
-						errors.New(fmt.Sprintf("system with key %s doesn't have an AWS profile set for env %s, which is needed when when using shared AWS profile configuration",
-							system.Key,
-							env.Name))
-				}
-			}
-			var awsProfile string
-			if awsConfigSource == ui.SharedCfgProfileSrc {
-				awsProfile = *env.AwsProfile
-			}
 
-			var iamRoleToAssume string
-			if env.IAMRoleToAssume != nil {
-				iamRoleToAssume = *env.IAMRoleToAssume
+			var awsConfigType ui.AWSConfigSourceType
+			var awsConfigSource string
+			switch {
+			case env.AwsConfigSource == "default":
+				awsConfigType = ui.DefaultCfgType
+			case strings.HasPrefix(env.AwsConfigSource, "profile:::"):
+				configElements := strings.Split(env.AwsConfigSource, "profile:::")
+				awsConfigSource = configElements[len(configElements)-1]
+				awsConfigType = ui.SharedCfgProfileType
+			case strings.HasPrefix(env.AwsConfigSource, "assume-role:::"):
+				configElements := strings.Split(env.AwsConfigSource, "assume-role:::")
+				awsConfigSource = configElements[len(configElements)-1]
+				awsConfigType = ui.AssumeRoleCfgType
+			default:
+				return nil,
+					nil,
+					errors.New(fmt.Sprintf("system with key %s doesn't have a valid aws-config-source for env %s",
+						system.Key,
+						env.Name))
 			}
 			systems = append(systems, ui.System{
-				Key:             system.Key,
-				Env:             env.Name,
-				AWSProfile:      awsProfile,
-				AWSRegion:       env.AwsRegion,
-				IAMRoleToAssume: iamRoleToAssume,
-				ClusterName:     env.Cluster,
-				ServiceName:     env.Service,
-				ContainerName:   env.ContainerName,
+				Key:                 system.Key,
+				Env:                 env.Name,
+				AWSConfigSourceType: awsConfigType,
+				AWSConfigSource:     awsConfigSource,
+				AWSRegion:           env.AwsRegion,
+				ClusterName:         env.Cluster,
+				ServiceName:         env.Service,
+				ContainerName:       env.ContainerName,
 			})
 		}
 	}
