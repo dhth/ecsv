@@ -62,10 +62,14 @@ func readConfig(filePath string, awsConfigSource ui.AWSConfigSource) ([]string, 
 							env.Name))
 				}
 			}
+			var awsProfile string
+			if awsConfigSource == ui.SharedCfgProfileSrc {
+				awsProfile = *env.AwsProfile
+			}
 			systems = append(systems, ui.System{
 				Key:           system.Key,
 				Env:           env.Name,
-				AWSProfile:    *env.AwsProfile,
+				AWSProfile:    awsProfile,
 				AWSRegion:     env.AwsRegion,
 				ClusterName:   env.Cluster,
 				ServiceName:   env.Service,
