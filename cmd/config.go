@@ -17,12 +17,13 @@ type T struct {
 	Systems     []struct {
 		Key  string `yaml:"key"`
 		Envs []struct {
-			Name          string  `yaml:"name"`
-			AwsProfile    *string `yaml:"aws-profile"`
-			AwsRegion     string  `yaml:"aws-region"`
-			Cluster       string  `yaml:"cluster"`
-			Service       string  `yaml:"service"`
-			ContainerName string  `yaml:"container-name"`
+			Name            string  `yaml:"name"`
+			AwsProfile      *string `yaml:"aws-profile"`
+			AwsRegion       string  `yaml:"aws-region"`
+			IAMRoleToAssume *string `yaml:"iam-role-to-assume"`
+			Cluster         string  `yaml:"cluster"`
+			Service         string  `yaml:"service"`
+			ContainerName   string  `yaml:"container-name"`
 		} `yaml:"envs"`
 	} `yaml:"systems"`
 }
@@ -66,14 +67,20 @@ func readConfig(filePath string, awsConfigSource ui.AWSConfigSource) ([]string, 
 			if awsConfigSource == ui.SharedCfgProfileSrc {
 				awsProfile = *env.AwsProfile
 			}
+
+			var iamRoleToAssume string
+			if env.IAMRoleToAssume != nil {
+				iamRoleToAssume = *env.IAMRoleToAssume
+			}
 			systems = append(systems, ui.System{
-				Key:           system.Key,
-				Env:           env.Name,
-				AWSProfile:    awsProfile,
-				AWSRegion:     env.AwsRegion,
-				ClusterName:   env.Cluster,
-				ServiceName:   env.Service,
-				ContainerName: env.ContainerName,
+				Key:             system.Key,
+				Env:             env.Name,
+				AWSProfile:      awsProfile,
+				AWSRegion:       env.AwsRegion,
+				IAMRoleToAssume: iamRoleToAssume,
+				ClusterName:     env.Cluster,
+				ServiceName:     env.Service,
+				ContainerName:   env.ContainerName,
 			})
 		}
 	}

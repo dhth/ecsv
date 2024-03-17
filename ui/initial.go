@@ -32,9 +32,17 @@ func newModel(envSeq []string, systems []System, outFormat OutFormat, awsConfigS
 		}
 	case DefaultCfg:
 		for _, system := range systems {
-			if !seenConfigs[getDefaultCfgKey(&system)] {
-				cfg, err := getDefaultConfig(system.AWSRegion)
-				awsConfigs[getDefaultCfgKey(&system)] = AWSConfig{cfg, err}
+			switch system.IAMRoleToAssume {
+			case "":
+				if !seenConfigs[getDefaultCfgKey(&system)] {
+					cfg, err := getDefaultConfig(system.AWSRegion)
+					awsConfigs[getDefaultCfgKey(&system)] = AWSConfig{cfg, err}
+				}
+			default:
+				if !seenConfigs[getRoleCfgKey(&system)] {
+					cfg, err := getRoleConfig(system.IAMRoleToAssume, system.AWSRegion)
+					awsConfigs[getRoleCfgKey(&system)] = AWSConfig{cfg, err}
+				}
 			}
 		}
 	}

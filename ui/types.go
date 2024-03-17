@@ -17,13 +17,14 @@ const (
 )
 
 type System struct {
-	Key           string
-	Env           string
-	AWSProfile    string
-	AWSRegion     string
-	ClusterName   string
-	ServiceName   string
-	ContainerName string
+	Key             string
+	Env             string
+	AWSProfile      string
+	AWSRegion       string
+	IAMRoleToAssume string
+	ClusterName     string
+	ServiceName     string
+	ContainerName   string
 }
 
 type OutFormat uint

@@ -23,7 +23,12 @@ func (m model) fetchSystemVersion(system System) tea.Cmd {
 		case SharedCfgProfileSrc:
 			awsConfig = m.awsConfigs[getSharedProfileCfgKey(&system)]
 		case DefaultCfg:
-			awsConfig = m.awsConfigs[getDefaultCfgKey(&system)]
+			switch system.IAMRoleToAssume {
+			case "":
+				awsConfig = m.awsConfigs[getDefaultCfgKey(&system)]
+			default:
+				awsConfig = m.awsConfigs[getRoleCfgKey(&system)]
+			}
 		}
 		if awsConfig.err != nil {
 			return processFinishedMsg{
