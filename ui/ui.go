@@ -7,7 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func RenderUI(envSequence []string, systems []System, outFormat OutFormat) {
+func RenderUI(envSequence []string, systems []System, outFormat OutFormat, htmlTemplate string) {
 	if len(os.Getenv("DEBUG")) > 0 {
 		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
@@ -24,7 +24,7 @@ func RenderUI(envSequence []string, systems []System, outFormat OutFormat) {
 		// CLI mode, find a better way
 		opts = append(opts, tea.WithInput(nil))
 	}
-	p := tea.NewProgram(newModel(envSequence, systems, outFormat), opts...)
+	p := tea.NewProgram(newModel(envSequence, systems, outFormat, htmlTemplate), opts...)
 	if _, err := p.Run(); err != nil {
 		fmt.Println("Error starting Bubble Tea program:", err)
 		os.Exit(1)

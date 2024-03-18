@@ -17,6 +17,7 @@ type model struct {
 	numResults      int
 	printWhenReady  bool
 	outputPrinted   bool
+	htmlTemplate    string
 	errors          []error
 	terminalWidth   int
 }

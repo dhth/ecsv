@@ -16,7 +16,8 @@ func die(msg string, args ...any) {
 }
 
 var (
-	format = flag.String("format", "", "output format to use, using this will disable TUI mode; available values: plaintext, html")
+	format           = flag.String("format", "", "output format to use, using this will disable TUI mode; available values: plaintext, html")
+	htmlTemplateFile = flag.String("html-template-file", "", "path of the HTML template file to use")
 )
 
 func Execute() {
@@ -44,6 +45,19 @@ func Execute() {
 		default:
 			die("ecsv only supports the following formats: plaintext, html")
 		}
+	}
+
+	var htmlTemplate string
+	if *htmlTemplateFile != "" {
+		_, err := os.Stat(*htmlTemplateFile)
+		if os.IsNotExist(err) {
+			die(fmt.Sprintf("Error: template file doesn't exist at %q", *htmlTemplateFile))
+		}
+		templateFileContents, err := os.ReadFile(*htmlTemplateFile)
+		if err != nil {
+			die(fmt.Sprintf("Error: couldn't read template file %q", *htmlTemplateFile))
+		}
+		htmlTemplate = string(templateFileContents)
 	}
 
 	if *configFilePath == "" {
@@ -78,6 +92,6 @@ func Execute() {
 		die("No systems found in config file")
 	}
 
-	ui.RenderUI(envSequence, systems, outFormat)
+	ui.RenderUI(envSequence, systems, outFormat, htmlTemplate)
 
 }
