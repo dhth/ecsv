@@ -26,6 +26,6 @@ or not, and you can leverage that to render a row in a particular style.
 
 The provided example file generates an HTML file that looks like the following:
 
-<p align="center">
-  <img src="../../assets/ecsv_html_example.png" alt="HTML output" />
+<p align="left">
+  <img src="../../assets/ecsv_html_example.png" style="max-width: 50%;" alt="HTML output" />
 </p>
