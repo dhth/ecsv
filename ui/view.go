@@ -31,7 +31,9 @@ func (m model) renderPlainText() string {
 		var style lipgloss.Style
 		var versions []string
 		for _, env := range m.envSequence {
-			versions = append(versions, m.results[sys][env])
+			if m.results[sys][env] != "" {
+				versions = append(versions, m.results[sys][env])
+			}
 		}
 		if allEqual(versions) {
 			style = inSyncStylePlain
@@ -76,7 +78,9 @@ func (m model) renderHTML() string {
 		rowData = append(rowData, sys)
 		var versions []string
 		for _, env := range m.envSequence {
-			versions = append(versions, m.results[sys][env])
+			if m.results[sys][env] != "" {
+				versions = append(versions, m.results[sys][env])
+			}
 		}
 		if allEqual(versions) {
 			inSync = true
