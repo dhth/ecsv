@@ -80,9 +80,11 @@ ecsv -format=html
 Using the latter will output HTML that, when served, looks as follows:
 
 <p align="center">
-  <img src="./assets/html.png" alt="Usage" />
+  <img src="./assets/html.png" alt="HTML output" />
 </p>
 
+Read more about outputting HTML in the [examples](./examples/html_template)
+directory.
 
 Acknowledgements
 ---

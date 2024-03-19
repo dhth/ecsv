@@ -6,15 +6,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <title>sample</title>
 </head>
-<body class="bg-slate-900 text-xl">
+<body class="bg-[#282828] text-xl">
+    <div class="divide-y divide-dashed divide-[#928374]">
     <div class="container mx-auto p-4">
-        <h1 class="text-stone-50 text-2xl mb-4 font-bold">An example web page</h1>
+        <h1 class="text-[#fbf1c7] text-2xl mb-4 font-bold">An example web page</h1>
         <br>
-        <p class="text-stone-200 text-xl mb-4">ecsv can generate HTML content
+        <p class="text-[#fbf1c7] text-xl mb-4">ecsv can generate HTML content
         based on a template you provide, like this!</h1>
         <table class="table-auto font-bold text-left">
             <thead>
-                <tr class="text-stone-50 bg-slate-700">
+                <tr class="text-[#fbf1c7] bg-[#3c3836]">
                     {{range .Columns -}}
                     <th class="px-4 py-2">{{.}}</th>
                     {{end -}}
@@ -23,9 +24,9 @@
             <tbody>
                 {{range .Rows -}}
                     {{if .InSync}}
-                <tr class="text-green-600">
+                <tr class="text-[#b8bb26]">
                     {{else}}
-                <tr class="text-red-600">
+                <tr class="text-[#fb4934]">
                     {{end}}
                     {{range .Data -}}
                     <td class="px-4 py-2">{{.}}</td>
@@ -36,19 +37,19 @@
         </table>
         <br>
         <br>
-        <p class="text-stone-300 italic">Generated at {{.Timestamp}}</p>
-
+        <p class="text-[#928374] italic">Generated at {{.Timestamp}}</p>
+        <br>
+        <p class="text-[#928374] italic">Built using <a class="font-bold" href="https://github.com/dhth/ecsv">ecsv</a></p>
+        </div>
         {{if .Errors }}
-        <br>
-        <hr>
-        <br>
-        <p class="text-red-600 font-bold italic">Errors</p>
+        <div class="container mx-auto p-4">
+        <p class="text-[#fb4934] font-bold italic">Errors</p>
             <br>
             {{range $index, $error := .Errors -}}
-            <p class="text-gray-400 italic">{{$index}}: {{$error}}</p>
+            <p class="text-[#bdae93] italic">{{$index}}: {{$error}}</p>
             <br>
             {{end -}}
+        </div>
         {{end -}}
-    </div>
 </body>
 </html>
