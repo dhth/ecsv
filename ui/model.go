@@ -10,9 +10,7 @@ type model struct {
 	results         map[string]map[string]string
 	systemNames     []string
 	systems         []System
-	awsConfigSource AWSConfigSourceType
 	awsConfigs      map[string]AWSConfig
-	message         string
 	numResultsToGet int
 	numResults      int
 	printWhenReady  bool

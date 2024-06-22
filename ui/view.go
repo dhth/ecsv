@@ -20,14 +20,14 @@ func (m model) renderPlainText() string {
 	s += " " + "ecsv"
 	s += "\n\n"
 
-	s += fmt.Sprintf("%s", systemStylePlain.Render("system"))
+	s += systemStylePlain.Render("system")
 
 	for _, env := range m.envSequence {
 		s += fmt.Sprintf("%s    ", envStylePlain.Render(env))
 	}
 	s += "\n\n"
 	for _, sys := range m.systemNames {
-		s += fmt.Sprintf("%s", systemStylePlain.Render(sys))
+		s += systemStylePlain.Render(sys)
 		var style lipgloss.Style
 		var versions []string
 		for _, env := range m.envSequence {
@@ -69,9 +69,7 @@ func (m model) renderHTML() string {
 	}
 
 	columns = append(columns, "system")
-	for _, env := range m.envSequence {
-		columns = append(columns, env)
-	}
+	columns = append(columns, m.envSequence...)
 
 	for _, sys := range m.systemNames {
 		var rowData []string
@@ -129,14 +127,14 @@ func (m model) renderCLIUI() string {
 	s += " " + headerStyle.Render("ecsv")
 	s += "\n\n"
 
-	s += fmt.Sprintf("%s", systemStyle.Render("system"))
+	s += systemStyle.Render("system")
 
 	for _, env := range m.envSequence {
 		s += fmt.Sprintf("%s    ", envStyle.Render(env))
 	}
 	s += "\n\n"
 	for _, sys := range m.systemNames {
-		s += fmt.Sprintf("%s", systemStyle.Render(sys))
+		s += systemStyle.Render(sys)
 		var style lipgloss.Style
 		var versions []string
 		for _, env := range m.envSequence {

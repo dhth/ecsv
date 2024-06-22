@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/user"
@@ -70,9 +69,9 @@ func readConfig(filePath string) ([]string, []ui.System, error) {
 			default:
 				return nil,
 					nil,
-					errors.New(fmt.Sprintf("system with key %s doesn't have a valid aws-config-source for env %s",
+					fmt.Errorf("system with key %s doesn't have a valid aws-config-source for env %s",
 						system.Key,
-						env.Name))
+						env.Name)
 			}
 			systems = append(systems, ui.System{
 				Key:                 system.Key,

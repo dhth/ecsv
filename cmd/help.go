@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-
-	"github.com/dhth/ecsv/ui"
 )
 
 var (
@@ -63,16 +61,5 @@ Config source (aws-config-source):
 Use "ecsv -help" for more information`,
 		msg,
 		configSampleFormat,
-	)
-}
-
-func templErrSuggestion(msg string) string {
-	return fmt.Sprintf(`
-Make sure to structure your HTML template as follows:
-
-%s
-
-Use "ecsv -help" for more information`,
-		string(ui.HTMLTemplText),
 	)
 }

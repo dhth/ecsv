@@ -12,21 +12,18 @@ var (
 			PaddingLeft(1).
 			PaddingRight(1)
 
-	headerStyle = fgStyle.Copy().
+	headerStyle = fgStyle.
 			Align(lipgloss.Center).
 			Bold(true).
 			Background(lipgloss.Color("#d3869b"))
 
-	headerStylePlain = fgStylePlain.Copy().
-				Align(lipgloss.Center)
-
-	envStyle = fgStyle.Copy().
+	envStyle = fgStyle.
 			Align(lipgloss.Center).
 			Bold(true).
 			Background(lipgloss.Color("#b8bb26")).
 			Width(16)
 
-	envStylePlain = fgStylePlain.Copy().
+	envStylePlain = fgStylePlain.
 			Align(lipgloss.Center).
 			Width(16)
 
@@ -34,41 +31,41 @@ var (
 			PaddingLeft(1).
 			PaddingRight(1)
 
-	systemStyle = nonFgStyle.Copy().
+	systemStyle = nonFgStyle.
 			Align(lipgloss.Left).
 			Bold(true).
 			Foreground(lipgloss.Color("#83a598")).
 			Width(30)
 
-	systemStylePlain = nonFgStyle.Copy().
+	systemStylePlain = nonFgStyle.
 				Align(lipgloss.Left).
 				Width(30)
 
-	inSyncStyle = nonFgStyle.Copy().
+	inSyncStyle = nonFgStyle.
 			Align(lipgloss.Center).
 			Bold(true).
 			Foreground(lipgloss.Color("#b8bb26")).
 			Width(16)
 
-	inSyncStylePlain = nonFgStyle.Copy().
+	inSyncStylePlain = nonFgStyle.
 				Align(lipgloss.Center).
 				Width(16)
 
-	outOfSyncStyle = nonFgStyle.Copy().
+	outOfSyncStyle = nonFgStyle.
 			Align(lipgloss.Center).
 			Bold(true).
 			Foreground(lipgloss.Color("#fb4934")).
 			Width(16).
 			Underline(true)
 
-	outOfSyncStylePlain = nonFgStyle.Copy().
+	outOfSyncStylePlain = nonFgStyle.
 				Align(lipgloss.Center).
 				Width(16)
 
-	errorHeadingStyle = nonFgStyle.Copy().
+	errorHeadingStyle = nonFgStyle.
 				Bold(true).
 				Foreground(lipgloss.Color("#fb4934"))
 
-	errorDetailStyle = nonFgStyle.Copy().
+	errorDetailStyle = nonFgStyle.
 				Foreground(lipgloss.Color("#665c54"))
 )
