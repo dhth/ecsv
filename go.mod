@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.21
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.43.1
 	github.com/aws/aws-sdk-go-v2/service/sts v1.29.1
-	github.com/charmbracelet/bubbletea v0.26.5
+	github.com/charmbracelet/bubbletea v0.26.6
 	github.com/charmbracelet/lipgloss v0.11.0
 	gopkg.in/yaml.v3 v3.0.1
 )
