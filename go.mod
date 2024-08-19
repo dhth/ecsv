@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.27
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.44.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.3
-	github.com/charmbracelet/bubbletea v0.26.6
+	github.com/charmbracelet/bubbletea v0.27.0
 	github.com/charmbracelet/lipgloss v0.12.1
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -39,7 +39,7 @@ require (
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 )
