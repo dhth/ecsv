@@ -1,41 +1,6 @@
 package ui
 
-import (
-	"github.com/aws/aws-sdk-go-v2/aws"
-)
-
-type AWSConfig struct {
-	config aws.Config
-	err    error
-}
-
-type AWSConfigSourceType uint
-
-const (
-	DefaultCfgType AWSConfigSourceType = iota
-	SharedCfgProfileType
-	AssumeRoleCfgType
-)
-
-type System struct {
-	Key                 string
-	Env                 string
-	AWSConfigSourceType AWSConfigSourceType
-	AWSConfigSource     string
-	AWSRegion           string
-	IAMRoleToAssume     string
-	ClusterName         string
-	ServiceName         string
-	ContainerName       string
-}
-
-type OutFormat uint
-
-const (
-	UnspecifiedFmt OutFormat = iota
-	PlainTextFmt
-	HTMLFmt
-)
+import "github.com/dhth/ecsv/internal/types"
 
 type HTMLDataRow struct {
 	Data   []string
@@ -45,6 +10,29 @@ type HTMLData struct {
 	Title     string
 	Columns   []string
 	Rows      []HTMLDataRow
-	Errors    *[]error
+	Errors    []error
 	Timestamp string
 }
+
+type Config struct {
+	EnvSequence  []string
+	SystemKeys   []string
+	OutputFmt    types.OutputFmt
+	HTMLTemplate string
+}
+
+type SystemResult struct {
+	SystemKey string
+	Env       string
+	Version   string
+	Found     bool
+	Err       error
+}
+
+type ConfigSourceType uint
+
+const (
+	DefaultCfgType ConfigSourceType = iota
+	SharedCfgProfileType
+	AssumeRoleCfgType
+)
