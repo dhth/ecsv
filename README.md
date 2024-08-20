@@ -85,10 +85,3 @@ Using the latter will output HTML that, when served, looks as follows:
 
 Read more about outputting HTML in the [examples](./examples/html_template)
 directory.
-
-Acknowledgements
----
-
-`ecsv` is built using the awesome TUI framework [bubbletea][1].
-
-[1]: https://github.com/charmbracelet/bubbletea

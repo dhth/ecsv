@@ -1,32 +1,57 @@
 package cmd
 
 import (
+	"errors"
+	"flag"
 	"fmt"
 	"os"
-	"os/user"
+	"path/filepath"
 
-	"flag"
-
+	"github.com/dhth/ecsv/internal/awshelpers"
+	"github.com/dhth/ecsv/internal/types"
 	"github.com/dhth/ecsv/ui"
 )
 
-func die(msg string, args ...any) {
-	fmt.Fprintf(os.Stderr, msg+"\n", args...)
-	os.Exit(1)
-}
+const (
+	helpText = `Quickly check the code versions of containers running in your ECS services across various environments.
 
-var (
-	format           = flag.String("format", "", "output format to use, using this will disable TUI mode; available values: plaintext, html")
-	htmlTemplateFile = flag.String("html-template-file", "", "path of the HTML template file to use")
+Usage: ecsv [flags]`
 )
 
-func Execute() {
-	currentUser, err := user.Current()
-	var defaultConfigFilePath string
-	if err == nil {
-		defaultConfigFilePath = fmt.Sprintf("%s/.config/ecsv.yml", currentUser.HomeDir)
+var (
+	configFileName   = "ecsv/ecsv.yml"
+	format           = flag.String("f", "default", "output format to use; available values: default, plaintext, html")
+	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
+)
+
+var (
+	errConfigFileFlagEmpty     = errors.New("config file flag cannot be empty")
+	errCouldntGetHomeDir       = errors.New("couldn't get your home directory")
+	errCouldntGetConfigDir     = errors.New("couldn't get your default config directory")
+	errConfigFileExtIncorrect  = errors.New("config file must be a YAML file")
+	errConfigFileDoesntExist   = errors.New("config file does not exist")
+	errCouldntReadConfigFile   = errors.New("couldn't read config file")
+	errCouldntParseConfigFile  = errors.New("couldn't parse config file")
+	errTemplateFileDoesntExit  = errors.New("template file doesn't exist")
+	errCouldntReadTemplateFile = errors.New("couldn't read template file")
+	errIncorrectFormatProvided = errors.New("incorrect value for format provided")
+	errEnvNotInEnvSequence     = errors.New("env not present in env-sequence")
+	errNoSystemsFound          = errors.New("no systems found")
+)
+
+func Execute() error {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("%w: %s", errCouldntGetHomeDir, err.Error())
 	}
-	configFilePath := flag.String("config-file", defaultConfigFilePath, "path of the config file")
+
+	defaultConfigDir, err := os.UserConfigDir()
+	if err != nil {
+		return fmt.Errorf("%w: %s", errCouldntGetConfigDir, err.Error())
+	}
+	defaultConfigFilePath := filepath.Join(defaultConfigDir, configFileName)
+
+	configFilePath := flag.String("c", defaultConfigFilePath, "path of the config file")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "%s\n\nFlags:\n", helpText)
@@ -35,15 +60,17 @@ func Execute() {
 
 	flag.Parse()
 
-	var outFormat ui.OutFormat
+	var outFormat types.OutputFmt
 	if *format != "" {
 		switch *format {
-		case "plaintext":
-			outFormat = ui.PlainTextFmt
+		case "default":
+			outFormat = types.DefaultFmt
+		case "table":
+			outFormat = types.TabularFmt
 		case "html":
-			outFormat = ui.HTMLFmt
+			outFormat = types.HTMLFmt
 		default:
-			die("ecsv only supports the following formats: plaintext, html")
+			return fmt.Errorf("%w", errIncorrectFormatProvided)
 		}
 	}
 
@@ -51,30 +78,38 @@ func Execute() {
 	if *htmlTemplateFile != "" {
 		_, err := os.Stat(*htmlTemplateFile)
 		if os.IsNotExist(err) {
-			die(fmt.Sprintf("Error: template file doesn't exist at %q", *htmlTemplateFile))
+			return fmt.Errorf("%w: path: %s", errTemplateFileDoesntExit, *htmlTemplateFile)
 		}
 		templateFileContents, err := os.ReadFile(*htmlTemplateFile)
 		if err != nil {
-			die(fmt.Sprintf("Error: couldn't read template file %q", *htmlTemplateFile))
+			return fmt.Errorf("%w: %s", errCouldntReadTemplateFile, err.Error())
 		}
 		htmlTemplate = string(templateFileContents)
 	}
 
 	if *configFilePath == "" {
-		die("config-file cannot be empty")
+		return fmt.Errorf("%w", errConfigFileFlagEmpty)
 	}
 
-	configFilePathExp := expandTilde(*configFilePath)
+	configPathFull := expandTilde(*configFilePath, userHomeDir)
 
-	_, err = os.Stat(configFilePathExp)
+	if filepath.Ext(configPathFull) != ".yml" && filepath.Ext(configPathFull) != ".yaml" {
+		return errConfigFileExtIncorrect
+	}
+
+	_, err = os.Stat(configPathFull)
 	if os.IsNotExist(err) {
-		die(cfgErrSuggestion(fmt.Sprintf("Error: file doesn't exist at %q", configFilePathExp)))
+		return fmt.Errorf("%w: %s", errConfigFileDoesntExist, err.Error())
 	}
 
-	envSequence, systems, err := readConfig(configFilePathExp)
+	configBytes, err := os.ReadFile(configPathFull)
 	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
+		return fmt.Errorf("%w: %s", errCouldntReadConfigFile, err.Error())
+	}
+
+	envSequence, systems, err := readConfig(configBytes)
+	if err != nil {
+		return fmt.Errorf("%w: %s", errCouldntParseConfigFile, err.Error())
 	}
 
 	// assert that all envs are present in env-sequence
@@ -84,14 +119,47 @@ func Execute() {
 	}
 	for _, s := range systems {
 		if !seqMap[s.Env] {
-			die("env %q found in the config but is not present in env-sequence: %q", s.Env, envSequence)
+			return fmt.Errorf("%w: %s", errEnvNotInEnvSequence, s.Env)
 		}
 	}
 
 	if len(systems) == 0 {
-		die("No systems found in config file")
+		return fmt.Errorf("%w", errNoSystemsFound)
 	}
 
-	ui.RenderUI(envSequence, systems, outFormat, htmlTemplate)
+	awsConfigs := make(map[string]awshelpers.Config)
 
+	seenSystems := make(map[string]bool)
+	var systemKeys []string
+	seenConfigs := make(map[string]bool)
+
+	for _, system := range systems {
+		if !seenSystems[system.Key] {
+			systemKeys = append(systemKeys, system.Key)
+			seenSystems[system.Key] = true
+		}
+
+		if !seenConfigs[system.AWSConfigKey()] {
+			cfg, err := awshelpers.GetAWSConfig(system)
+			awsConfigs[system.AWSConfigKey()] = awshelpers.Config{
+				Config: cfg,
+				Err:    err,
+			}
+			seenSystems[system.Key] = true
+		}
+	}
+
+	config := ui.Config{
+		EnvSequence:  envSequence,
+		SystemKeys:   systemKeys,
+		OutputFmt:    outFormat,
+		HTMLTemplate: htmlTemplate,
+	}
+
+	err = render(systems, config, awsConfigs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

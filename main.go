@@ -1,7 +1,16 @@
 package main
 
-import "github.com/dhth/ecsv/cmd"
+import (
+	"fmt"
+	"os"
+
+	"github.com/dhth/ecsv/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	err := cmd.Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+		os.Exit(1)
+	}
 }

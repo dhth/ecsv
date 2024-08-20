@@ -1,17 +1,19 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
-	"os"
-	"os/user"
+	"path/filepath"
 	"strings"
 
-	"github.com/dhth/ecsv/ui"
+	"github.com/dhth/ecsv/internal/types"
 
 	"gopkg.in/yaml.v3"
 )
 
-type T struct {
+var errInvalidConfigSourceProvided = errors.New("invalid aws-system-source provided")
+
+type Config struct {
 	EnvSequence []string `yaml:"env-sequence"`
 	Systems     []struct {
 		Key  string `yaml:"key"`
@@ -26,54 +28,46 @@ type T struct {
 	} `yaml:"systems"`
 }
 
-func expandTilde(path string) string {
-	if strings.HasPrefix(path, "~") {
-		usr, err := user.Current()
-		if err != nil {
-			return path
-		}
-		return strings.Replace(path, "~", usr.HomeDir, 1)
+func expandTilde(path string, homeDir string) string {
+	if strings.HasPrefix(path, "~/") {
+		return filepath.Join(homeDir, path[2:])
 	}
 	return path
 }
 
-func readConfig(filePath string) ([]string, []ui.System, error) {
-	localFile, err := os.ReadFile(filePath)
-	if err != nil {
-		os.Exit(1)
-	}
-	t := T{}
-	err = yaml.Unmarshal(localFile, &t)
+func readConfig(configBytes []byte) ([]string, []types.System, error) {
+	cfg := Config{}
+	err := yaml.Unmarshal(configBytes, &cfg)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	systems := make([]ui.System, 0)
+	var systems []types.System
 
-	for _, system := range t.Systems {
+	for _, system := range cfg.Systems {
 		for _, env := range system.Envs {
 
-			var awsConfigType ui.AWSConfigSourceType
+			var awsConfigType types.AWSConfigSourceType
 			var awsConfigSource string
 			switch {
 			case env.AwsConfigSource == "default":
-				awsConfigType = ui.DefaultCfgType
+				awsConfigType = types.DefaultCfgType
 			case strings.HasPrefix(env.AwsConfigSource, "profile:::"):
 				configElements := strings.Split(env.AwsConfigSource, "profile:::")
 				awsConfigSource = configElements[len(configElements)-1]
-				awsConfigType = ui.SharedCfgProfileType
+				awsConfigType = types.SharedCfgProfileType
 			case strings.HasPrefix(env.AwsConfigSource, "assume-role:::"):
 				configElements := strings.Split(env.AwsConfigSource, "assume-role:::")
 				awsConfigSource = configElements[len(configElements)-1]
-				awsConfigType = ui.AssumeRoleCfgType
+				awsConfigType = types.AssumeRoleCfgType
 			default:
 				return nil,
 					nil,
-					fmt.Errorf("system with key %s doesn't have a valid aws-config-source for env %s",
+					fmt.Errorf("%w: system: %s env: %s", errInvalidConfigSourceProvided,
 						system.Key,
 						env.Name)
 			}
-			systems = append(systems, ui.System{
+			systems = append(systems, types.System{
 				Key:                 system.Key,
 				Env:                 env.Name,
 				AWSConfigSourceType: awsConfigType,
@@ -85,6 +79,5 @@ func readConfig(filePath string) ([]string, []ui.System, error) {
 			})
 		}
 	}
-	return t.EnvSequence, systems, err
-
+	return cfg.EnvSequence, systems, nil
 }
