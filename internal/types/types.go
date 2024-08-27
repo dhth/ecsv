@@ -1,5 +1,7 @@
 package types
 
+import "sort"
+
 type OutputFmt uint
 
 const (
@@ -43,4 +45,38 @@ type SystemResult struct {
 	Version   string
 	Found     bool
 	Err       error
+}
+
+type TableStyle string
+
+func (ts TableStyle) String() string {
+	return string(ts)
+}
+
+const (
+	ASCIIStyle TableStyle = "ascii"
+	BlankStyle TableStyle = "blank"
+	DotsStyle  TableStyle = "dots"
+	SharpStyle TableStyle = "sharp"
+)
+
+var styles = map[string]TableStyle{
+	string(ASCIIStyle): ASCIIStyle,
+	string(BlankStyle): BlankStyle,
+	string(DotsStyle):  DotsStyle,
+	string(SharpStyle): SharpStyle,
+}
+
+func TableStyleStrings() []string {
+	values := make([]string, 0, len(styles))
+	for k := range styles {
+		values = append(values, k)
+	}
+	sort.Strings(values)
+	return values
+}
+
+func GetStyle(styleStr string) (TableStyle, bool) {
+	style, ok := styles[styleStr]
+	return style, ok
 }

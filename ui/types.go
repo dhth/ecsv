@@ -19,6 +19,7 @@ type Config struct {
 	SystemKeys   []string
 	OutputFmt    types.OutputFmt
 	HTMLTemplate string
+	Style        types.TableStyle
 }
 
 type SystemResult struct {

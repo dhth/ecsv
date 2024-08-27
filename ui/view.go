@@ -84,6 +84,11 @@ func getTabularOutput(config Config, results map[string]map[string]types.SystemR
 	table.SetAutoWrapText(false)
 	table.SetAutoFormatHeaders(false)
 	table.SetAlignment(tablewriter.ALIGN_RIGHT)
+	table.SetHeaderAlignment(tablewriter.ALIGN_RIGHT)
+	separators := getTableSeparators(config.Style)
+	table.SetCenterSeparator(separators.center)
+	table.SetColumnSeparator(separators.column)
+	table.SetRowSeparator(separators.row)
 	table.AppendBulk(rows)
 
 	table.Render()

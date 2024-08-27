@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/dhth/ecsv/internal/awshelpers"
 	"github.com/dhth/ecsv/internal/types"
@@ -20,8 +21,9 @@ Usage: ecsv [flags]`
 
 var (
 	configFileName   = "ecsv/ecsv.yml"
-	format           = flag.String("f", "default", "output format to use; available values: default, plaintext, html")
+	format           = flag.String("f", "default", "output format to use [possible values: default, plaintext, html]")
 	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
+	style            = flag.String("style", types.ASCIIStyle.String(), fmt.Sprintf("style to use [possible values: %s]", strings.Join(types.TableStyleStrings(), ", ")))
 )
 
 var (
@@ -37,6 +39,7 @@ var (
 	errIncorrectFormatProvided = errors.New("incorrect value for format provided")
 	errEnvNotInEnvSequence     = errors.New("env not present in env-sequence")
 	errNoSystemsFound          = errors.New("no systems found")
+	errIncorrectStyleProvided  = errors.New("incorrect style provided")
 )
 
 func Execute() error {
@@ -72,6 +75,11 @@ func Execute() error {
 		default:
 			return fmt.Errorf("%w", errIncorrectFormatProvided)
 		}
+	}
+
+	tableStyle, ok := types.GetStyle(*style)
+	if !ok {
+		return fmt.Errorf("%w: potential values: %q", errIncorrectStyleProvided, types.TableStyleStrings())
 	}
 
 	var htmlTemplate string
@@ -154,6 +162,7 @@ func Execute() error {
 		SystemKeys:   systemKeys,
 		OutputFmt:    outFormat,
 		HTMLTemplate: htmlTemplate,
+		Style:        tableStyle,
 	}
 
 	err = render(systems, config, awsConfigs)
