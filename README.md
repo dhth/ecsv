@@ -1,7 +1,9 @@
 # ecsv
 
-✨ Overview
----
+[![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/ecsv/build.yml?style=flat-square)](https://github.com/dhth/ecsv/actions/workflows/build.yml)
+[![Vulncheck Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/ecsv/vulncheck.yml?style=flat-square&label=vulncheck)](https://github.com/dhth/ecsv/actions/workflows/vulncheck.yml)
+[![Latest Release](https://img.shields.io/github/release/dhth/ecsv.svg?style=flat-square)](https://github.com/dhth/ecsv/releases/latest)
+[![Commits Since Latest Release](https://img.shields.io/github/commits-since/dhth/ecsv/latest?style=flat-square)](https://github.com/dhth/ecsv/releases)
 
 `ecsv` helps you quickly check the versions of your systems running in ECS tasks
 across various environments.
