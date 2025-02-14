@@ -71,8 +71,8 @@ By default, `ecsv` will try to find the config file at `~/.config/ecsv.yml`.
 
 ### Output Formats
 
-Besides being in TUI mode, `ecsv` can also output data in plaintext and HTML
-formats.
+Besides the default ANSI output, `ecsv` can also output data in plaintext and
+HTML formats.
 
 ```bash
 ecsv -format=plaintext
