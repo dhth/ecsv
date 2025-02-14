@@ -8,10 +8,7 @@
 `ecsv` helps you quickly check the versions of your systems running in ECS tasks
 across various environments.
 
-<p align="center">
-  <img src="./assets/ecsv.gif?raw=true" alt="Usage" />
-</p>
-
+![ecsv-terminal](https://github.com/user-attachments/assets/9faec97f-dda7-442c-a890-6059492b848b)
 
 💾 Installation
 ---
@@ -69,21 +66,23 @@ systems:
 
 By default, `ecsv` will try to find the config file at `~/.config/ecsv.yml`.
 
-### Output Formats
+🔠 Output Formats
+---
 
 Besides the default ANSI output, `ecsv` can also output data in plaintext and
 HTML formats.
 
 ```bash
-ecsv -format=plaintext
-ecsv -format=html
+ecsv -f table
 ```
 
-Using the latter will output HTML that, when served, looks as follows:
+![ecsv-table](https://github.com/user-attachments/assets/9003ab4c-09c0-44f8-b6a6-6933a0088f6a)
 
-<p align="left">
-  <img src="./assets/ecsv_html_default.png" style="max-width: 50%;" alt="HTML output" />
-</p>
+```bash
+ecsv -f html > output.html
+```
+
+![ecsv-terminal](https://github.com/user-attachments/assets/dbde169a-3253-42cd-b5ff-0f2f99cecf58)
 
 Read more about outputting HTML in the [examples](./examples/html-template)
 directory.
