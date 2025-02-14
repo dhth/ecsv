@@ -23,6 +23,7 @@ var (
 	configFileName   = "ecsv/ecsv.yml"
 	format           = flag.String("f", "default", "output format to use [possible values: default, html]")
 	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
+	htmlTitle        = flag.String("html-title", "ecsv", "title to be used in the html output")
 	style            = flag.String("style", types.ASCIIStyle.String(), fmt.Sprintf("style to use [possible values: %s]", strings.Join(types.TableStyleStrings(), ", ")))
 	showRegisteredAt = flag.Bool("show-registered-at", true, "whether to show the time when the task definition corresponding to a container was registered")
 )
@@ -163,6 +164,7 @@ func Execute() error {
 		SystemKeys:       systemKeys,
 		OutputFmt:        outFormat,
 		HTMLTemplate:     htmlTemplate,
+		HTMLTitle:        *htmlTitle,
 		Style:            tableStyle,
 		ShowRegisteredAt: *showRegisteredAt,
 	}

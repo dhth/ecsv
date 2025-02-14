@@ -3,3 +3,4 @@ ecsv
 cosign.key
 cosign.pub
 justfile
+output.html

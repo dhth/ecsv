@@ -213,7 +213,7 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 	rows := make([]HTMLDataRow, len(config.SystemKeys))
 
 	data := HTMLData{
-		Title: "ecsv",
+		Title: config.HTMLTitle,
 	}
 
 	columns = append(columns, "system")
