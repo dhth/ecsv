@@ -13,11 +13,15 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Show task definition registration time for each version
 - Allow configuring html title via `--html-title`
 
+### Changed
+
+- Go and dependency upgrades
+
 ## [v1.3.1] - Jan 07, 2024
 
 ### Changed
 
-- Dependency, go upgrades
+- Go and dependency upgrades
 
 ## [v1.3.0] - Aug 20, 2024
 
