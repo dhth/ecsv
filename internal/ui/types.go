@@ -15,11 +15,12 @@ type HTMLData struct {
 }
 
 type Config struct {
-	EnvSequence  []string
-	SystemKeys   []string
-	OutputFmt    types.OutputFmt
-	HTMLTemplate string
-	Style        types.TableStyle
+	EnvSequence      []string
+	SystemKeys       []string
+	OutputFmt        types.OutputFmt
+	HTMLTemplate     string
+	Style            types.TableStyle
+	ShowRegisteredAt bool
 }
 
 type SystemResult struct {

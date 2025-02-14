@@ -1,6 +1,9 @@
 package types
 
-import "sort"
+import (
+	"sort"
+	"time"
+)
 
 type OutputFmt uint
 
@@ -40,11 +43,12 @@ func (s System) AWSConfigKey() string {
 }
 
 type SystemResult struct {
-	SystemKey string
-	Env       string
-	Version   string
-	Found     bool
-	Err       error
+	SystemKey    string
+	Env          string
+	Version      string
+	Found        bool
+	RegisteredAt *time.Time
+	Err          error
 }
 
 type TableStyle string

@@ -85,5 +85,5 @@ Using the latter will output HTML that, when served, looks as follows:
   <img src="./assets/ecsv_html_default.png" style="max-width: 50%;" alt="HTML output" />
 </p>
 
-Read more about outputting HTML in the [examples](./examples/html_template)
+Read more about outputting HTML in the [examples](./examples/html-template)
 directory.

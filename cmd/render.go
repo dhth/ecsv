@@ -3,12 +3,12 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/dhth/ecsv/internal/awshelpers"
+	"github.com/dhth/ecsv/internal/aws"
 	"github.com/dhth/ecsv/internal/types"
-	"github.com/dhth/ecsv/ui"
+	"github.com/dhth/ecsv/internal/ui"
 )
 
-func render(systems []types.System, config ui.Config, awsConfigs map[string]awshelpers.Config) error {
+func render(systems []types.System, config ui.Config, awsConfigs map[string]aws.Config) error {
 	results := make(map[string]map[string]types.SystemResult)
 	resultChannel := make(chan types.SystemResult)
 
@@ -29,7 +29,7 @@ func render(systems []types.System, config ui.Config, awsConfigs map[string]awsh
 			continue
 		}
 		go func(system types.System) {
-			resultChannel <- awshelpers.FetchSystemVersion(system, awsConfig)
+			resultChannel <- aws.FetchSystemVersion(system, awsConfig)
 		}(s)
 		counter++
 	}

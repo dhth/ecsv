@@ -9,7 +9,7 @@ var (
 		Foreground(lipgloss.Color("#282828"))
 
 	headerStyle = fgStyle.
-			Align(lipgloss.Center).
+			Align(lipgloss.Left).
 			Bold(true).
 			Background(lipgloss.Color("#d3869b"))
 
@@ -17,7 +17,7 @@ var (
 			Align(lipgloss.Center).
 			Bold(true).
 			Background(lipgloss.Color("#b8bb26")).
-			Width(16)
+			Width(30)
 
 	nonFgStyle = lipgloss.NewStyle().
 			PaddingLeft(1).
@@ -29,20 +29,27 @@ var (
 			Foreground(lipgloss.Color("#83a598")).
 			Width(30)
 
-	resultStyle = nonFgStyle.
-			Align(lipgloss.Center).
+	versionStyle = nonFgStyle.
+			Width(18).
+			Align(lipgloss.Left).
 			Bold(true).
-			Foreground(lipgloss.Color("#b8bb26")).
-			Width(16)
-
-	inSyncStyle = resultStyle.
 			Foreground(lipgloss.Color("#b8bb26"))
 
-	outOfSyncStyle = resultStyle.
+	resultStyle = lipgloss.NewStyle().
+			Width(34)
+
+	durationStyle = lipgloss.NewStyle().
+			Width(12).
+			Foreground(lipgloss.Color("#665c54"))
+
+	inSyncStyle = versionStyle.
+			Foreground(lipgloss.Color("#b8bb26"))
+
+	outOfSyncStyle = versionStyle.
 			Foreground(lipgloss.Color("#fb4934")).
 			Underline(true)
 
-	errorStyle = resultStyle.
+	errorStyle = versionStyle.
 			Foreground(lipgloss.Color("#fabd2f")).
 			Underline(true)
 

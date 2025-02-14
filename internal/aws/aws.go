@@ -1,8 +1,9 @@
-package awshelpers
+package aws
 
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -17,7 +18,7 @@ type Config struct {
 	Err    error
 }
 
-func GetAWSConfig(system types.System) (aws.Config, error) {
+func GetConfig(system types.System) (aws.Config, error) {
 	var cfg aws.Config
 	var err error
 	switch system.AWSConfigSourceType {
@@ -48,7 +49,6 @@ func FetchSystemVersion(system types.System, awsConfig Config) types.SystemResul
 	services := make([]string, 1)
 	services[0] = system.ServiceName
 	svcs, err := ecsClient.DescribeServices(context.Background(), &ecs.DescribeServicesInput{Services: services, Cluster: &system.ClusterName})
-	var version string
 	if err != nil {
 		return types.SystemResult{
 			SystemKey: system.Key,
@@ -59,7 +59,7 @@ func FetchSystemVersion(system types.System, awsConfig Config) types.SystemResul
 	for _, svc := range svcs.Services {
 		td := svc.TaskDefinition
 
-		tdD, err := ecsClient.DescribeTaskDefinition(context.Background(), &ecs.DescribeTaskDefinitionInput{TaskDefinition: td})
+		describeTDOutput, err := ecsClient.DescribeTaskDefinition(context.Background(), &ecs.DescribeTaskDefinitionInput{TaskDefinition: td})
 		if err != nil {
 			return types.SystemResult{
 				SystemKey: system.Key,
@@ -67,18 +67,25 @@ func FetchSystemVersion(system types.System, awsConfig Config) types.SystemResul
 				Err:       err,
 			}
 		}
-		cd := tdD.TaskDefinition.ContainerDefinitions
-		for _, cdd := range cd {
-			if *cdd.Name == system.ContainerName {
-				versionEls := strings.Split(*cdd.Image, ":")
+		containerDefs := describeTDOutput.TaskDefinition.ContainerDefinitions
+		for _, containerDef := range containerDefs {
+			if *containerDef.Name == system.ContainerName {
+				versionEls := strings.Split(*containerDef.Image, ":")
+				var version string
 				if len(versionEls) > 0 {
 					version = versionEls[len(versionEls)-1]
 				}
+				var registeredAt *time.Time
+				if describeTDOutput != nil && describeTDOutput.TaskDefinition != nil {
+					registeredAt = describeTDOutput.TaskDefinition.RegisteredAt
+				}
+
 				return types.SystemResult{
-					Found:     true,
-					SystemKey: system.Key,
-					Env:       system.Env,
-					Version:   version,
+					Found:        true,
+					SystemKey:    system.Key,
+					Env:          system.Env,
+					Version:      version,
+					RegisteredAt: registeredAt,
 				}
 			}
 		}

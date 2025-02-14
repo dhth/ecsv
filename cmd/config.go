@@ -11,7 +11,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var errInvalidConfigSourceProvided = errors.New("invalid aws-system-source provided")
+var (
+	errInvalidConfigSourceProvided = errors.New("invalid aws-system-source provided")
+	errConfigIsInvalidYAML         = errors.New("config file is not valid YAML")
+)
 
 type Config struct {
 	EnvSequence []string `yaml:"env-sequence"`
@@ -39,7 +42,7 @@ func readConfig(configBytes []byte) ([]string, []types.System, error) {
 	cfg := Config{}
 	err := yaml.Unmarshal(configBytes, &cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("%w: %s", errConfigIsInvalidYAML, err.Error())
 	}
 
 	var systems []types.System

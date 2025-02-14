@@ -43,20 +43,20 @@ func getTabularOutput(config Config, results map[string]map[string]types.SystemR
 	for _, sys := range config.SystemKeys {
 		var row []string
 
-		var versions []string
+		var versions []versionInfo
 		for _, env := range config.EnvSequence {
 			r, ok := results[sys][env]
 			if !ok {
-				versions = append(versions, "")
+				versions = append(versions, versionInfo{})
 				continue
 			}
 			if r.Err != nil {
-				versions = append(versions, errorMsg)
+				versions = append(versions, versionInfo{errMsg: errorMsg})
 			} else {
 				if !r.Found {
-					versions = append(versions, systemNotFound)
+					versions = append(versions, versionInfo{notFound: true})
 				} else {
-					versions = append(versions, r.Version)
+					versions = append(versions, versionInfo{version: r.Version, registeredAt: r.RegisteredAt})
 				}
 			}
 		}
@@ -66,9 +66,26 @@ func getTabularOutput(config Config, results map[string]map[string]types.SystemR
 		} else {
 			inSync = "NO"
 		}
+
 		row = append(row, sys)
 		row = append(row, inSync)
-		row = append(row, versions...)
+		for _, v := range versions {
+			if v.errMsg != "" {
+				row = append(row, v.errMsg)
+			} else if v.notFound {
+				row = append(row, systemNotFound)
+			} else if v.version == "" {
+				row = append(row, "")
+			} else {
+				if config.ShowRegisteredAt {
+					duration := int(time.Since(*v.registeredAt).Seconds())
+					durationMsg := fmt.Sprintf("(%s ago)", HumanizeDuration(duration))
+					row = append(row, fmt.Sprintf("%s %s", v.version, durationMsg))
+				} else {
+					row = append(row, v.version)
+				}
+			}
+		}
 		rows = append(rows, row)
 	}
 
@@ -96,6 +113,13 @@ func getTabularOutput(config Config, results map[string]map[string]types.SystemR
 	return b.String()
 }
 
+type versionInfo struct {
+	version      string
+	errMsg       string
+	registeredAt *time.Time
+	notFound     bool
+}
+
 func getTerminalOutput(config Config, results map[string]map[string]types.SystemResult) string {
 	var s string
 
@@ -103,10 +127,21 @@ func getTerminalOutput(config Config, results map[string]map[string]types.System
 	s += " " + headerStyle.Render("ecsv")
 	s += "\n\n"
 
+	var envSt lipgloss.Style
+	var resultSt lipgloss.Style
+
+	if config.ShowRegisteredAt {
+		envSt = envStyle
+		resultSt = resultStyle
+	} else {
+		envSt = envStyle.Width(18)
+		resultSt = resultStyle.Width(22)
+	}
+
 	s += systemStyle.Render("system")
 
 	for _, env := range config.EnvSequence {
-		s += fmt.Sprintf("%s    ", envStyle.Render(env))
+		s += fmt.Sprintf("%s    ", envSt.Render(env))
 	}
 	s += "\n\n"
 	errorIndex := 0
@@ -114,39 +149,49 @@ func getTerminalOutput(config Config, results map[string]map[string]types.System
 
 	for _, sys := range config.SystemKeys {
 		s += systemStyle.Render(sys)
-		var versions []string
-		var style lipgloss.Style
-		styleSet := false
+		var versions []versionInfo
 		for _, env := range config.EnvSequence {
 			r, ok := results[sys][env]
 			if !ok {
-				versions = append(versions, "")
+				versions = append(versions, versionInfo{})
 				continue
 			}
 			if r.Err != nil {
-				versions = append(versions, fmt.Sprintf("%s [%d]", errorMsg, errorIndex))
+				versions = append(versions, versionInfo{errMsg: fmt.Sprintf("%s [%d]", errorMsg, errorIndex)})
 				errors = append(errors, r.Err)
 				errorIndex++
-				style = errorStyle
-				styleSet = true
 			} else {
 				if !r.Found {
-					versions = append(versions, systemNotFound)
+					versions = append(versions, versionInfo{notFound: true})
 				} else {
-					versions = append(versions, r.Version)
+					versions = append(versions, versionInfo{version: r.Version, registeredAt: r.RegisteredAt})
 				}
 			}
 		}
 
-		if !styleSet {
-			if allEqual(versions) {
-				style = inSyncStyle
-			} else {
-				style = outOfSyncStyle
-			}
+		var style lipgloss.Style
+		if allEqual(versions) {
+			style = inSyncStyle
+		} else {
+			style = outOfSyncStyle
 		}
+
 		for _, v := range versions {
-			s += fmt.Sprintf("%s    ", style.Render(v))
+			if v.errMsg != "" {
+				s += resultSt.Render(errorStyle.Render(v.errMsg))
+			} else if v.notFound {
+				s += resultSt.Render(errorStyle.Render(systemNotFound))
+			} else if v.version == "" {
+				s += resultSt.Render("")
+			} else {
+				if config.ShowRegisteredAt {
+					duration := int(time.Since(*v.registeredAt).Seconds())
+					durationMsg := fmt.Sprintf("(%s ago)", HumanizeDuration(duration))
+					s += resultSt.Render(fmt.Sprintf("%s %s", style.Render(v.version), durationStyle.Render(durationMsg)))
+				} else {
+					s += resultSt.Render(style.Render(v.version))
+				}
+			}
 		}
 		s += "\n"
 	}
@@ -179,24 +224,24 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 	for i, sys := range config.SystemKeys {
 		var rowData []string
 		rowData = append(rowData, sys)
-		var versions []string
+		var versions []versionInfo
 		var inSync bool
 		for _, env := range config.EnvSequence {
 			r, ok := results[sys][env]
 			if !ok {
-				versions = append(versions, "")
+				versions = append(versions, versionInfo{})
 				continue
 			}
 			if r.Err != nil {
-				versions = append(versions, fmt.Sprintf("%s [%d]", errorMsg, errorIndex))
+				versions = append(versions, versionInfo{errMsg: fmt.Sprintf("%s [%d]", errorMsg, errorIndex)})
 				errorIndex++
 				errors = append(errors, r.Err)
 				inSync = false
 			} else {
 				if !r.Found {
-					versions = append(versions, systemNotFound)
+					versions = append(versions, versionInfo{notFound: true})
 				} else {
-					versions = append(versions, r.Version)
+					versions = append(versions, versionInfo{version: r.Version, registeredAt: r.RegisteredAt})
 				}
 			}
 		}
@@ -204,7 +249,23 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 		if allEqual(versions) {
 			inSync = true
 		}
-		rowData = append(rowData, versions...)
+		for _, v := range versions {
+			if v.errMsg != "" {
+				rowData = append(rowData, v.errMsg)
+			} else if v.notFound {
+				rowData = append(rowData, systemNotFound)
+			} else if v.version == "" {
+				rowData = append(rowData, "")
+			} else {
+				if config.ShowRegisteredAt {
+					duration := int(time.Since(*v.registeredAt).Seconds())
+					durationMsg := fmt.Sprintf("(%s ago)", HumanizeDuration(duration))
+					rowData = append(rowData, fmt.Sprintf("%s %s", v.version, durationMsg))
+				} else {
+					rowData = append(rowData, v.version)
+				}
+			}
+		}
 
 		rows[i] = HTMLDataRow{
 			Data:   rowData,
@@ -238,17 +299,18 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 	return buf.String(), nil
 }
 
-func allEqual(versions []string) bool {
+func allEqual(versions []versionInfo) bool {
 	if len(versions) <= 1 {
 		return true
 	}
 	var firstNonEmpty string
 	for _, v := range versions {
-		if v == errorMsg || v == systemNotFound {
+		if v.errMsg != "" || v.notFound {
 			return false
 		}
-		if v != "" {
-			firstNonEmpty = v
+
+		if v.version != "" {
+			firstNonEmpty = v.version
 			break
 		}
 	}
@@ -257,10 +319,10 @@ func allEqual(versions []string) bool {
 	}
 
 	for _, v := range versions[1:] {
-		if v == errorMsg || v == systemNotFound {
+		if v.errMsg != "" || v.notFound {
 			return false
 		}
-		if v != firstNonEmpty || v == errorMsg || v == systemNotFound {
+		if v.version != firstNonEmpty || v.errMsg != "" || v.notFound {
 			return false
 		}
 	}

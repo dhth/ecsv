@@ -11,11 +11,11 @@
         <h1 class="text-[#fbf1c7] text-2xl mb-4 font-bold">{{.Title}}</h1>
         <p class="text-[#928374] italic">Generated at {{.Timestamp}}</p>
         <br>
-        <table class="table-auto font-bold text-left">
+        <table class="table-auto font-bold text-right">
             <thead>
                 <tr class="text-[#fbf1c7] bg-[#3c3836]">
                     {{range .Columns -}}
-                    <th class="px-4 py-2">{{.}}</th>
+                    <th class="px-10 py-2">{{.}}</th>
                     {{end -}}
                 </tr>
             </thead>
@@ -27,7 +27,7 @@
                 <tr class="text-[#fb4934]">
                     {{end}}
                     {{range .Data -}}
-                    <td class="px-4 py-2">{{.}}</td>
+                    <td class="px-10 py-2">{{.}}</td>
                     {{end -}}
                 </tr>
                 {{end -}}

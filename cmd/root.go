@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dhth/ecsv/internal/awshelpers"
+	"github.com/dhth/ecsv/internal/aws"
 	"github.com/dhth/ecsv/internal/types"
-	"github.com/dhth/ecsv/ui"
+	"github.com/dhth/ecsv/internal/ui"
 )
 
 const (
@@ -21,9 +21,10 @@ Usage: ecsv [flags]`
 
 var (
 	configFileName   = "ecsv/ecsv.yml"
-	format           = flag.String("f", "default", "output format to use [possible values: default, plaintext, html]")
+	format           = flag.String("f", "default", "output format to use [possible values: default, html]")
 	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
 	style            = flag.String("style", types.ASCIIStyle.String(), fmt.Sprintf("style to use [possible values: %s]", strings.Join(types.TableStyleStrings(), ", ")))
+	showRegisteredAt = flag.Bool("show-registered-at", true, "whether to show the time when the task definition corresponding to a container was registered")
 )
 
 var (
@@ -135,7 +136,7 @@ func Execute() error {
 		return fmt.Errorf("%w", errNoSystemsFound)
 	}
 
-	awsConfigs := make(map[string]awshelpers.Config)
+	awsConfigs := make(map[string]aws.Config)
 
 	seenSystems := make(map[string]bool)
 	var systemKeys []string
@@ -148,8 +149,8 @@ func Execute() error {
 		}
 
 		if !seenConfigs[system.AWSConfigKey()] {
-			cfg, err := awshelpers.GetAWSConfig(system)
-			awsConfigs[system.AWSConfigKey()] = awshelpers.Config{
+			cfg, err := aws.GetConfig(system)
+			awsConfigs[system.AWSConfigKey()] = aws.Config{
 				Config: cfg,
 				Err:    err,
 			}
@@ -158,17 +159,13 @@ func Execute() error {
 	}
 
 	config := ui.Config{
-		EnvSequence:  envSequence,
-		SystemKeys:   systemKeys,
-		OutputFmt:    outFormat,
-		HTMLTemplate: htmlTemplate,
-		Style:        tableStyle,
+		EnvSequence:      envSequence,
+		SystemKeys:       systemKeys,
+		OutputFmt:        outFormat,
+		HTMLTemplate:     htmlTemplate,
+		Style:            tableStyle,
+		ShowRegisteredAt: *showRegisteredAt,
 	}
 
-	err = render(systems, config, awsConfigs)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return render(systems, config, awsConfigs)
 }
