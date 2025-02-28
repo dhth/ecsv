@@ -298,33 +298,3 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 
 	return buf.String(), nil
 }
-
-func allEqual(versions []versionInfo) bool {
-	if len(versions) <= 1 {
-		return true
-	}
-	var firstNonEmpty string
-	for _, v := range versions {
-		if v.errMsg != "" || v.notFound {
-			return false
-		}
-
-		if v.version != "" {
-			firstNonEmpty = v.version
-			break
-		}
-	}
-	if firstNonEmpty == "" {
-		return true
-	}
-
-	for _, v := range versions[1:] {
-		if v.errMsg != "" || v.notFound {
-			return false
-		}
-		if v.version != firstNonEmpty || v.errMsg != "" || v.notFound {
-			return false
-		}
-	}
-	return true
-}
