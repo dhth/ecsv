@@ -64,8 +64,6 @@ systems:
     container-name: service-b-staging-Service
 ```
 
-By default, `ecsv` will try to find the config file at `~/.config/ecsv.yml`.
-
 🔠 Output Formats
 ---
 
