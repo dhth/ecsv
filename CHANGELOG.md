@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic
 Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Logic for determining if versions are different in scenarios where one or more
+  envs are missing
+
+### Changed
+
+- Add an upper bound to maximum number of concurrent fetches
+
 ## [v1.4.0] - Feb 14, 2025
 
 ### Added

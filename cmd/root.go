@@ -137,6 +137,11 @@ func Execute() error {
 		return fmt.Errorf("%w", errNoSystemsFound)
 	}
 
+	maxConcFetches, err := getMaxConcFetches()
+	if err != nil {
+		return err
+	}
+
 	awsConfigs := make(map[string]aws.Config)
 
 	seenSystems := make(map[string]bool)
@@ -169,5 +174,5 @@ func Execute() error {
 		ShowRegisteredAt: *showRegisteredAt,
 	}
 
-	return render(systems, config, awsConfigs)
+	return render(systems, config, awsConfigs, maxConcFetches)
 }
