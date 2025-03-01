@@ -6,18 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/dhth/ecsv/internal/aws"
 	"github.com/dhth/ecsv/internal/types"
 	"github.com/dhth/ecsv/internal/ui"
-)
-
-const (
-	maxConcurrentFetchesDefault        = 10
-	maxConcurrentFetchesUpperThreshold = 50
-	maxConcurrentFetchesEnvVar         = "ECSV_MAX_CONCURRENT_FETCHES"
 )
 
 const (
@@ -49,8 +42,6 @@ var (
 	errEnvNotInEnvSequence     = errors.New("env not present in env-sequence")
 	errNoSystemsFound          = errors.New("no systems found")
 	errIncorrectStyleProvided  = errors.New("incorrect style provided")
-	errEnvVarInvalid           = errors.New("environment variable is invalid")
-	errMaxConcFetchesIsInvalid = errors.New("maximum concurrent fetches is invalid")
 )
 
 func Execute() error {
@@ -146,6 +137,11 @@ func Execute() error {
 		return fmt.Errorf("%w", errNoSystemsFound)
 	}
 
+	maxConcFetches, err := getMaxConcFetches()
+	if err != nil {
+		return err
+	}
+
 	awsConfigs := make(map[string]aws.Config)
 
 	seenSystems := make(map[string]bool)
@@ -176,19 +172,6 @@ func Execute() error {
 		HTMLTitle:        *htmlTitle,
 		Style:            tableStyle,
 		ShowRegisteredAt: *showRegisteredAt,
-	}
-
-	maxConcFetches := maxConcurrentFetchesDefault
-	maxConcFetchesValue := os.Getenv(maxConcurrentFetchesEnvVar)
-	if maxConcFetchesValue != "" {
-		userProvidedMaxConcFetches, err := strconv.Atoi(maxConcFetchesValue)
-		if err != nil {
-			return fmt.Errorf("%w: %s needs to be an integer", errEnvVarInvalid, maxConcurrentFetchesEnvVar)
-		}
-		if userProvidedMaxConcFetches <= 0 || userProvidedMaxConcFetches > maxConcurrentFetchesUpperThreshold {
-			return fmt.Errorf("%w: needs to be between [1, %d] (both inclusive)", errMaxConcFetchesIsInvalid, maxConcurrentFetchesUpperThreshold)
-		}
-		maxConcFetches = userProvidedMaxConcFetches
 	}
 
 	return render(systems, config, awsConfigs, maxConcFetches)
