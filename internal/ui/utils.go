@@ -66,7 +66,6 @@ func allEqual(versions []versionInfo) bool {
 			versionsMap[v.version] = struct{}{}
 		}
 	}
-	fmt.Printf("versionsMap: %s\n", versionsMap)
 
 	return len(versionsMap) == 1
 }
