@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic
 Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v1.4.1] - Mar 01, 2025
 
 ### Fixed
 
@@ -45,7 +45,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Config file default location on darwin changed `~/Library/Application
   Support/ecsv/ecsv.yml`
 
-[unreleased]: https://github.com/dhth/ecsv/compare/v1.4.0...HEAD
+[unreleased]: https://github.com/dhth/ecsv/compare/v1.4.1...HEAD
+[v1.4.1]: https://github.com/dhth/ecsv/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/dhth/ecsv/compare/v1.3.1...v1.4.0
 [v1.3.1]: https://github.com/dhth/ecsv/compare/v1.3.0...v1.3.1
 [v1.3.0]: https://github.com/dhth/ecsv/compare/v1.2.2...v1.3.0
