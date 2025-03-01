@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/dhth/ecsv/internal/aws"
@@ -13,7 +14,11 @@ import (
 	"github.com/dhth/ecsv/internal/ui"
 )
 
-const maxConcurrentFetchesDefault = 10
+const (
+	maxConcurrentFetchesDefault        = 10
+	maxConcurrentFetchesUpperThreshold = 50
+	maxConcurrentFetchesEnvVar         = "ECSV_MAX_CONCURRENT_FETCHES"
+)
 
 const (
 	helpText = `Quickly check the code versions of containers running in your ECS services across various environments.
@@ -44,6 +49,8 @@ var (
 	errEnvNotInEnvSequence     = errors.New("env not present in env-sequence")
 	errNoSystemsFound          = errors.New("no systems found")
 	errIncorrectStyleProvided  = errors.New("incorrect style provided")
+	errEnvVarInvalid           = errors.New("environment variable is invalid")
+	errMaxConcFetchesIsInvalid = errors.New("maximum concurrent fetches is invalid")
 )
 
 func Execute() error {
@@ -171,5 +178,18 @@ func Execute() error {
 		ShowRegisteredAt: *showRegisteredAt,
 	}
 
-	return render(systems, config, awsConfigs, maxConcurrentFetchesDefault)
+	maxConcFetches := maxConcurrentFetchesDefault
+	maxConcFetchesValue := os.Getenv(maxConcurrentFetchesEnvVar)
+	if maxConcFetchesValue != "" {
+		userProvidedMaxConcFetches, err := strconv.Atoi(maxConcFetchesValue)
+		if err != nil {
+			return fmt.Errorf("%w: %s needs to be an integer", errEnvVarInvalid, maxConcurrentFetchesEnvVar)
+		}
+		if userProvidedMaxConcFetches <= 0 || userProvidedMaxConcFetches > maxConcurrentFetchesUpperThreshold {
+			return fmt.Errorf("%w: needs to be between [1, %d] (both inclusive)", errMaxConcFetchesIsInvalid, maxConcurrentFetchesUpperThreshold)
+		}
+		maxConcFetches = userProvidedMaxConcFetches
+	}
+
+	return render(systems, config, awsConfigs, maxConcFetches)
 }

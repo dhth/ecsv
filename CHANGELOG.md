@@ -8,6 +8,11 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Logic for determining if versions are different in scenarios where one or more
+  envs are missing
+
 ### Changed
 
 - Add an upper bound to maximum number of concurrent fetches
