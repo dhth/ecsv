@@ -13,6 +13,8 @@ import (
 	"github.com/dhth/ecsv/internal/ui"
 )
 
+const maxConcurrentFetchesDefault = 10
+
 const (
 	helpText = `Quickly check the code versions of containers running in your ECS services across various environments.
 
@@ -169,5 +171,5 @@ func Execute() error {
 		ShowRegisteredAt: *showRegisteredAt,
 	}
 
-	return render(systems, config, awsConfigs)
+	return render(systems, config, awsConfigs, maxConcurrentFetchesDefault)
 }
