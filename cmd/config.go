@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/dhth/ecsv/internal/types"
@@ -38,7 +39,7 @@ func expandTilde(path string, homeDir string) string {
 	return path
 }
 
-func readConfig(configBytes []byte) ([]string, []types.System, error) {
+func readConfig(configBytes []byte, keyRegex *regexp.Regexp) ([]string, []types.System, error) {
 	cfg := Config{}
 	err := yaml.Unmarshal(configBytes, &cfg)
 	if err != nil {
@@ -48,6 +49,10 @@ func readConfig(configBytes []byte) ([]string, []types.System, error) {
 	var systems []types.System
 
 	for _, system := range cfg.Systems {
+		if keyRegex != nil && !keyRegex.Match([]byte(system.Key)) {
+			continue
+		}
+
 		for _, env := range system.Envs {
 
 			var awsConfigType types.AWSConfigSourceType
