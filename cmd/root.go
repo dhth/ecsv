@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/dhth/ecsv/internal/aws"
@@ -21,6 +22,7 @@ Usage: ecsv [flags]`
 
 var (
 	configFileName   = "ecsv/ecsv.yml"
+	keyFilter        = flag.String("key", "", "regex for filtering systems (by key)")
 	format           = flag.String("f", "default", "output format to use [possible values: default, html]")
 	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
 	htmlTitle        = flag.String("html-title", "ecsv", "title to be used in the html output")
@@ -29,19 +31,20 @@ var (
 )
 
 var (
-	errConfigFileFlagEmpty     = errors.New("config file flag cannot be empty")
-	errCouldntGetHomeDir       = errors.New("couldn't get your home directory")
-	errCouldntGetConfigDir     = errors.New("couldn't get your default config directory")
-	errConfigFileExtIncorrect  = errors.New("config file must be a YAML file")
-	errConfigFileDoesntExist   = errors.New("config file does not exist")
-	errCouldntReadConfigFile   = errors.New("couldn't read config file")
-	errCouldntParseConfigFile  = errors.New("couldn't parse config file")
-	errTemplateFileDoesntExit  = errors.New("template file doesn't exist")
-	errCouldntReadTemplateFile = errors.New("couldn't read template file")
-	errIncorrectFormatProvided = errors.New("incorrect value for format provided")
-	errEnvNotInEnvSequence     = errors.New("env not present in env-sequence")
-	errNoSystemsFound          = errors.New("no systems found")
-	errIncorrectStyleProvided  = errors.New("incorrect style provided")
+	errConfigFileFlagEmpty       = errors.New("config file flag cannot be empty")
+	errCouldntGetHomeDir         = errors.New("couldn't get your home directory")
+	errCouldntGetConfigDir       = errors.New("couldn't get your default config directory")
+	errConfigFileExtIncorrect    = errors.New("config file must be a YAML file")
+	errConfigFileDoesntExist     = errors.New("config file does not exist")
+	errCouldntReadConfigFile     = errors.New("couldn't read config file")
+	errCouldntParseConfigFile    = errors.New("couldn't parse config file")
+	errTemplateFileDoesntExit    = errors.New("template file doesn't exist")
+	errCouldntReadTemplateFile   = errors.New("couldn't read template file")
+	errIncorrectFormatProvided   = errors.New("incorrect value for format provided")
+	errEnvNotInEnvSequence       = errors.New("env not present in env-sequence")
+	errNoSystemsFound            = errors.New("no systems found")
+	errIncorrectStyleProvided    = errors.New("incorrect style provided")
+	errIncorrectKeyRegexProvided = errors.New("incorrect key regex provided")
 )
 
 func Execute() error {
@@ -101,6 +104,14 @@ func Execute() error {
 		return fmt.Errorf("%w", errConfigFileFlagEmpty)
 	}
 
+	var keyFilterRegex *regexp.Regexp
+	if *keyFilter != "" {
+		keyFilterRegex, err = regexp.Compile(*keyFilter)
+		if err != nil {
+			return fmt.Errorf("%w: %s", errIncorrectKeyRegexProvided, err.Error())
+		}
+	}
+
 	configPathFull := expandTilde(*configFilePath, userHomeDir)
 
 	if filepath.Ext(configPathFull) != ".yml" && filepath.Ext(configPathFull) != ".yaml" {
@@ -117,7 +128,7 @@ func Execute() error {
 		return fmt.Errorf("%w: %s", errCouldntReadConfigFile, err.Error())
 	}
 
-	envSequence, systems, err := readConfig(configBytes)
+	envSequence, systems, err := readConfig(configBytes, keyFilterRegex)
 	if err != nil {
 		return fmt.Errorf("%w: %s", errCouldntParseConfigFile, err.Error())
 	}
