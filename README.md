@@ -25,6 +25,10 @@ brew install dhth/tap/ecsv
 go install github.com/dhth/ecsv@latest
 ```
 
+Or get the binaries directly from a
+[release](https://github.com/dhth/ecsv/releases). Read more about verifying the
+authenticity of released artifacts [here](#-verifying-release-artifacts).
+
 ⚡️ Usage
 ---
 
@@ -84,3 +88,51 @@ ecsv -f html > output.html
 
 Read more about outputting HTML in the [examples](./examples/html-template)
 directory.
+
+🔐 Verifying release artifacts
+---
+
+In case you get the `ecsv` binary directly from a [release][4], you may want to
+verify its authenticity. Checksums are applied to all released artifacts, and
+the resulting checksum file is signed using
+[cosign](https://docs.sigstore.dev/cosign/installation/).
+
+Steps to verify (replace `A.B.C` in the commands listed below with the version
+you want):
+
+1. Download the following files from the release:
+
+    - ecsv_A.B.C_checksums.txt
+    - ecsv_A.B.C_checksums.txt.pem
+    - ecsv_A.B.C_checksums.txt.sig
+
+2. Verify the signature:
+
+   ```shell
+   cosign verify-blob ecsv_A.B.C_checksums.txt \
+       --certificate ecsv_A.B.C_checksums.txt.pem \
+       --signature ecsv_A.B.C_checksums.txt.sig \
+       --certificate-identity-regexp 'https://github\.com/dhth/ecsv/\.github/workflows/.+' \
+       --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+   ```
+
+3. Download the compressed archive you want, and validate its checksum:
+
+   ```shell
+   curl -sSLO https://github.com/dhth/ecsv/releases/download/vA.B.C/ecsv_A.B.C_linux_amd64.tar.gz
+   sha256sum --ignore-missing -c ecsv_A.B.C_checksums.txt
+   ```
+
+3. If checksum validation goes through, uncompress the archive:
+
+   ```shell
+   tar -xzf ecsv_A.B.C_linux_amd64.tar.gz
+   ./ecsv
+   # profit!
+   ```
+
+≈ Related tools
+---
+
+- [ecscope](https://github/dhth/ecscope) lets you monitor ECS resources and
+    deployments.
