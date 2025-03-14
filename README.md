@@ -134,5 +134,5 @@ you want):
 ≈ Related tools
 ---
 
-- [ecscope](https://github/dhth/ecscope) lets you monitor ECS resources and
-    deployments.
+- [ecscope](https://github.com/dhth/ecscope) lets you monitor ECS resources and
+  deployments.
