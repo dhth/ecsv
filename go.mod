@@ -1,12 +1,11 @@
 module github.com/dhth/ecsv
 
 go 1.24.0
-
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.8
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.61
-	github.com/aws/aws-sdk-go-v2/service/ecs v1.54.0
+	github.com/aws/aws-sdk-go-v2/service/ecs v1.54.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.16
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/olekukonko/tablewriter v0.0.5
