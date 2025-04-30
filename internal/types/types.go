@@ -13,6 +13,10 @@ const (
 	HTMLFmt
 )
 
+func OutputFormats() []string {
+	return []string{"default", "table", "html"}
+}
+
 type AWSConfigSourceType uint
 
 const (
