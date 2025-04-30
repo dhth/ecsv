@@ -23,7 +23,7 @@ Usage: ecsv [flags]`
 var (
 	configFileName   = "ecsv/ecsv.yml"
 	keyFilter        = flag.String("key", "", "regex for filtering systems (by key)")
-	format           = flag.String("f", "default", "output format to use [possible values: default, html]")
+	format           = flag.String("f", "default", fmt.Sprintf("output format to use [possible values: %s]", strings.Join(types.OutputFormats(), ", ")))
 	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
 	htmlTitle        = flag.String("html-title", "ecsv", "title to be used in the html output")
 	style            = flag.String("style", types.ASCIIStyle.String(), fmt.Sprintf("style to use [possible values: %s]", strings.Join(types.TableStyleStrings(), ", ")))

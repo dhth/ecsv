@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -62,11 +63,11 @@ func readConfig(configBytes []byte, keyRegex *regexp.Regexp) ([]string, []types.
 				awsConfigType = types.DefaultCfgType
 			case strings.HasPrefix(env.AwsConfigSource, "profile:::"):
 				configElements := strings.Split(env.AwsConfigSource, "profile:::")
-				awsConfigSource = configElements[len(configElements)-1]
+				awsConfigSource = os.ExpandEnv(configElements[len(configElements)-1])
 				awsConfigType = types.SharedCfgProfileType
 			case strings.HasPrefix(env.AwsConfigSource, "assume-role:::"):
 				configElements := strings.Split(env.AwsConfigSource, "assume-role:::")
-				awsConfigSource = configElements[len(configElements)-1]
+				awsConfigSource = os.ExpandEnv(configElements[len(configElements)-1])
 				awsConfigType = types.AssumeRoleCfgType
 			default:
 				return nil,
