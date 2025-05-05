@@ -8,6 +8,7 @@ type HTMLDataRow struct {
 }
 type HTMLData struct {
 	Title     string
+	TitleURL  string
 	Columns   []string
 	Rows      []HTMLDataRow
 	Errors    []error
@@ -20,6 +21,7 @@ type Config struct {
 	OutputFmt        types.OutputFmt
 	HTMLTemplate     string
 	HTMLTitle        string
+	HTMLTitleURL     string
 	Style            types.TableStyle
 	ShowRegisteredAt bool
 }

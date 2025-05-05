@@ -213,7 +213,8 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 	rows := make([]HTMLDataRow, len(config.SystemKeys))
 
 	data := HTMLData{
-		Title: config.HTMLTitle,
+		Title:    config.HTMLTitle,
+		TitleURL: config.HTMLTitleURL,
 	}
 
 	columns = append(columns, "system")
