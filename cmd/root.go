@@ -26,6 +26,7 @@ var (
 	format           = flag.String("f", "default", fmt.Sprintf("output format to use [possible values: %s]", strings.Join(types.OutputFormats(), ", ")))
 	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
 	htmlTitle        = flag.String("html-title", "ecsv", "title to be used in the html output")
+	htmlTitleURL     = flag.String("html-title-url", "https://github.com/dhth/ecsv", "url that the title in the html output points to")
 	style            = flag.String("style", types.ASCIIStyle.String(), fmt.Sprintf("style to use [possible values: %s]", strings.Join(types.TableStyleStrings(), ", ")))
 	showRegisteredAt = flag.Bool("show-registered-at", true, "whether to show the time when the task definition corresponding to a container was registered")
 )
@@ -181,6 +182,7 @@ func Execute() error {
 		OutputFmt:        outFormat,
 		HTMLTemplate:     htmlTemplate,
 		HTMLTitle:        *htmlTitle,
+		HTMLTitleURL:     *htmlTitleURL,
 		Style:            tableStyle,
 		ShowRegisteredAt: *showRegisteredAt,
 	}
