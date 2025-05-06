@@ -7,6 +7,7 @@ type HTMLDataRow struct {
 	InSync bool
 }
 type HTMLData struct {
+	Favicon   string
 	Title     string
 	TitleURL  string
 	Columns   []string
@@ -16,14 +17,15 @@ type HTMLData struct {
 }
 
 type Config struct {
-	EnvSequence      []string
-	SystemKeys       []string
-	OutputFmt        types.OutputFmt
-	HTMLTemplate     string
-	HTMLTitle        string
-	HTMLTitleURL     string
-	Style            types.TableStyle
-	ShowRegisteredAt bool
+	EnvSequence         []string
+	SystemKeys          []string
+	OutputFmt           types.OutputFmt
+	HTMLTemplate        string
+	HTMLTitle           string
+	HTMLTitleURL        string
+	HTMLFaviconContents []byte
+	Style               types.TableStyle
+	ShowRegisteredAt    bool
 }
 
 type SystemResult struct {

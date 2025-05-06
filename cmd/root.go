@@ -27,25 +27,27 @@ var (
 	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
 	htmlTitle        = flag.String("html-title", "ecsv", "title to be used in the html output")
 	htmlTitleURL     = flag.String("html-title-url", "https://github.com/dhth/ecsv", "url the title in the html output should point to")
+	htmlFaviconPath  = flag.String("html-favicon-path", "", "path to the favicon file to use")
 	style            = flag.String("style", types.ASCIIStyle.String(), fmt.Sprintf("style to use [possible values: %s]", strings.Join(types.TableStyleStrings(), ", ")))
 	showRegisteredAt = flag.Bool("show-registered-at", true, "whether to show the time when the task definition corresponding to a container was registered")
 )
 
 var (
-	errConfigFileFlagEmpty       = errors.New("config file flag cannot be empty")
-	errCouldntGetHomeDir         = errors.New("couldn't get your home directory")
-	errCouldntGetConfigDir       = errors.New("couldn't get your default config directory")
-	errConfigFileExtIncorrect    = errors.New("config file must be a YAML file")
-	errConfigFileDoesntExist     = errors.New("config file does not exist")
-	errCouldntReadConfigFile     = errors.New("couldn't read config file")
-	errCouldntParseConfigFile    = errors.New("couldn't parse config file")
-	errTemplateFileDoesntExit    = errors.New("template file doesn't exist")
-	errCouldntReadTemplateFile   = errors.New("couldn't read template file")
-	errIncorrectFormatProvided   = errors.New("incorrect value for format provided")
-	errEnvNotInEnvSequence       = errors.New("env not present in env-sequence")
-	errNoSystemsFound            = errors.New("no systems found")
-	errIncorrectStyleProvided    = errors.New("incorrect style provided")
-	errIncorrectKeyRegexProvided = errors.New("incorrect key regex provided")
+	errConfigFileFlagEmpty        = errors.New("config file flag cannot be empty")
+	errCouldntGetHomeDir          = errors.New("couldn't get your home directory")
+	errCouldntGetConfigDir        = errors.New("couldn't get your default config directory")
+	errConfigFileExtIncorrect     = errors.New("config file must be a YAML file")
+	errConfigFileDoesntExist      = errors.New("config file does not exist")
+	errCouldntReadConfigFile      = errors.New("couldn't read config file")
+	errCouldntParseConfigFile     = errors.New("couldn't parse config file")
+	errTemplateFileDoesntExit     = errors.New("template file doesn't exist")
+	errCouldntReadTemplateFile    = errors.New("couldn't read template file")
+	errIncorrectFormatProvided    = errors.New("incorrect value for format provided")
+	errEnvNotInEnvSequence        = errors.New("env not present in env-sequence")
+	errNoSystemsFound             = errors.New("no systems found")
+	errIncorrectStyleProvided     = errors.New("incorrect style provided")
+	errIncorrectKeyRegexProvided  = errors.New("incorrect key regex provided")
+	errCouldntReadFaviconContents = errors.New("couldn't read favicon contents")
 )
 
 func Execute() error {
@@ -99,6 +101,15 @@ func Execute() error {
 			return fmt.Errorf("%w: %s", errCouldntReadTemplateFile, err.Error())
 		}
 		htmlTemplate = string(templateFileContents)
+	}
+
+	var htmlFaviconContents []byte
+	if outFormat == types.HTMLFmt && *htmlFaviconPath != "" {
+		bytes, err := os.ReadFile(*htmlFaviconPath)
+		if err != nil {
+			return fmt.Errorf("%w: %s", errCouldntReadFaviconContents, err.Error())
+		}
+		htmlFaviconContents = bytes
 	}
 
 	if *configFilePath == "" {
@@ -177,14 +188,15 @@ func Execute() error {
 	}
 
 	config := ui.Config{
-		EnvSequence:      envSequence,
-		SystemKeys:       systemKeys,
-		OutputFmt:        outFormat,
-		HTMLTemplate:     htmlTemplate,
-		HTMLTitle:        *htmlTitle,
-		HTMLTitleURL:     *htmlTitleURL,
-		Style:            tableStyle,
-		ShowRegisteredAt: *showRegisteredAt,
+		EnvSequence:         envSequence,
+		SystemKeys:          systemKeys,
+		OutputFmt:           outFormat,
+		HTMLTemplate:        htmlTemplate,
+		HTMLTitle:           *htmlTitle,
+		HTMLTitleURL:        *htmlTitleURL,
+		HTMLFaviconContents: htmlFaviconContents,
+		Style:               tableStyle,
+		ShowRegisteredAt:    *showRegisteredAt,
 	}
 
 	return render(systems, config, awsConfigs, maxConcFetches)

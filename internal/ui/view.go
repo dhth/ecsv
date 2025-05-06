@@ -3,6 +3,7 @@ package ui
 import (
 	"bytes"
 	_ "embed"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"html/template"
@@ -25,6 +26,9 @@ var (
 
 //go:embed assets/template.html
 var htmlTemplate string
+
+//go:embed assets/favicon.png
+var fallbackFaviconContents []byte
 
 func GetOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
 	switch config.OutputFmt {
@@ -212,7 +216,15 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 	var columns []string
 	rows := make([]HTMLDataRow, len(config.SystemKeys))
 
+	var faviconContents []byte
+	if len(config.HTMLFaviconContents) > 0 {
+		faviconContents = config.HTMLFaviconContents
+	} else {
+		faviconContents = fallbackFaviconContents
+	}
+
 	data := HTMLData{
+		Favicon:  base64.StdEncoding.EncodeToString(faviconContents),
 		Title:    config.HTMLTitle,
 		TitleURL: config.HTMLTitleURL,
 	}
