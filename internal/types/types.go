@@ -61,6 +61,7 @@ type changesConfig struct {
 	Base          string  `yaml:"base"`
 	Head          string  `yaml:"head"`
 	IgnorePattern *string `yaml:"ignore-pattern"`
+	Transform     *string `yaml:"transform"`
 }
 
 type ECSVConfig struct {
@@ -98,6 +99,7 @@ type ChangesConfig struct {
 	Base          string
 	Head          string
 	IgnorePattern *regexp.Regexp
+	Transform     *string
 }
 
 type SystemsConfig struct {
@@ -187,6 +189,7 @@ func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
 					Base:          system.ChangesConfig.Base,
 					Head:          system.ChangesConfig.Head,
 					IgnorePattern: ignorePattern,
+					Transform:     system.ChangesConfig.Transform,
 				})
 			}
 		}
@@ -225,9 +228,9 @@ type VersionResult struct {
 }
 
 type ChangesResult struct {
-	SystemKey string
-	Commits   []Commit
-	Error     error
+	Config  ChangesConfig
+	Commits []Commit
+	Error   error
 }
 
 type Commit struct {

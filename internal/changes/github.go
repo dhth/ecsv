@@ -2,7 +2,6 @@ package changes
 
 import (
 	"context"
-	"regexp"
 	"strings"
 	"time"
 
@@ -10,14 +9,13 @@ import (
 	"github.com/google/go-github/v72/github"
 )
 
+const transformPlaceholder = "{{version}}"
+
 func FetchChanges(
 	client *github.Client,
-	systemKey,
-	owner,
-	repo,
+	config types.ChangesConfig,
 	baseRef,
 	headRef string,
-	ignorePattern *regexp.Regexp,
 ) types.ChangesResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -27,11 +25,21 @@ func FetchChanges(
 		PerPage: 100,
 	}
 
-	comparison, _, err := client.Repositories.CompareCommits(ctx, owner, repo, "v"+baseRef, "v"+headRef, &options)
+	baseRefToUse := baseRef
+	if config.Transform != nil {
+		baseRefToUse = strings.Replace(*config.Transform, transformPlaceholder, baseRef, 1)
+	}
+
+	headRefToUse := headRef
+	if config.Transform != nil {
+		headRefToUse = strings.Replace(*config.Transform, transformPlaceholder, headRef, 1)
+	}
+
+	comparison, _, err := client.Repositories.CompareCommits(ctx, config.Owner, config.Repo, baseRefToUse, headRefToUse, &options)
 	if err != nil {
 		return types.ChangesResult{
-			SystemKey: systemKey,
-			Error:     err,
+			Config: config,
+			Error:  err,
 		}
 	}
 
@@ -51,7 +59,7 @@ func FetchChanges(
 			sha = sha[:8]
 		}
 
-		if ignorePattern != nil && ignorePattern.Match([]byte(commit.Commit.GetMessage())) {
+		if config.IgnorePattern != nil && config.IgnorePattern.Match([]byte(commit.Commit.GetMessage())) {
 			continue
 		}
 
@@ -68,7 +76,7 @@ func FetchChanges(
 	}
 
 	return types.ChangesResult{
-		SystemKey: systemKey,
-		Commits:   commits,
+		Config:  config,
+		Commits: commits,
 	}
 }

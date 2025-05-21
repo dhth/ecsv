@@ -102,24 +102,19 @@ func process(
 		}
 
 		clWg.Add(1)
-		go func(systemKey, owner, repo, baseRef, headRef string) {
+		go func(baseRef, headRef string) {
 			defer clWg.Done()
 			cLSemaphore <- struct{}{}
 			defer func() {
 				<-cLSemaphore
 			}()
 			changelogResultChan <- changes.FetchChanges(client,
-				systemKey,
-				owner,
-				repo,
+				changesConfig,
 				baseRef,
-				headRef,
-				changesConfig.IgnorePattern)
-		}(changesConfig.SystemKey,
-			changesConfig.Owner,
-			changesConfig.Repo,
-			vrBase.Version,
-			vrHead.Version)
+				headRef)
+		}(vrBase.Version,
+			vrHead.Version,
+		)
 	}
 
 	go func() {
@@ -132,7 +127,7 @@ func process(
 	}
 
 	sort.Slice(changesResults, func(i, j int) bool {
-		return changesResults[i].SystemKey < changesResults[j].SystemKey
+		return changesResults[i].Config.SystemKey < changesResults[j].Config.SystemKey
 	})
 
 	output, err := ui.GetOutput(uiConfig, versionResults, changesResults)
