@@ -11,6 +11,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dhth/ecsv/internal/types"
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 const (
@@ -19,17 +21,20 @@ const (
 )
 
 var (
-	errCouldntParseHTMLTemplate = errors.New("couldn't parse HTML template")
-	errCouldntRenderHTML        = errors.New("couldn't render HTML")
+	ErrCouldntParseHTMLTemplate        = errors.New("couldn't parse HTML template")
+	ErrCouldntParseBuiltInHTMLTemplate = errors.New("couldn't parse built-in HTML template")
+	ErrCouldntCreateTable              = errors.New("couldn't create data table")
+	errCouldntRenderTable              = errors.New("couldn't render table")
+	ErrCouldntRenderHTML               = errors.New("couldn't render HTML")
 )
 
 //go:embed assets/template.html
-var htmlTemplate string
+var builtInHTMLTemplate string
 
 func GetOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
 	switch config.OutputFmt {
 	case types.TabularFmt:
-		return getTabularOutput(config, results), nil
+		return getTabularOutput(config, results)
 	case types.HTMLFmt:
 		return getHTMLOutput(config, results)
 	default:
@@ -37,7 +42,7 @@ func GetOutput(config Config, results map[string]map[string]types.SystemResult) 
 	}
 }
 
-func getTabularOutput(config Config, results map[string]map[string]types.SystemResult) string {
+func getTabularOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
 	rows := make([][]string, len(results))
 
 	for _, sys := range config.SystemKeys {
@@ -89,28 +94,53 @@ func getTabularOutput(config Config, results map[string]map[string]types.SystemR
 		rows = append(rows, row)
 	}
 
-	b := bytes.Buffer{}
-	table := tablewriter.NewWriter(&b)
-
 	var headers []string
 	headers = append(headers, "system")
 	headers = append(headers, "in-sync")
 	headers = append(headers, config.EnvSequence...)
-	table.SetHeader(headers)
 
-	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(false)
-	table.SetAlignment(tablewriter.ALIGN_RIGHT)
-	table.SetHeaderAlignment(tablewriter.ALIGN_RIGHT)
-	separators := getTableSeparators(config.Style)
-	table.SetCenterSeparator(separators.center)
-	table.SetColumnSeparator(separators.column)
-	table.SetRowSeparator(separators.row)
-	table.AppendBulk(rows)
+	var style tw.BorderStyle
+	switch config.Style {
+	case types.BlankStyle:
+		style = tw.StyleNone
+	case types.DotsStyle:
+		style = tw.StyleDotted
+	case types.SharpStyle:
+		style = tw.StyleDefault
+	default:
+		style = tw.StyleASCII
+	}
 
-	table.Render()
+	b := bytes.Buffer{}
+	table := tablewriter.NewTable(&b,
+		tablewriter.WithConfig(tablewriter.Config{
+			Header: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					Alignment:  tw.AlignRight,
+					AutoWrap:   tw.WrapNone,
+					AutoFormat: tw.Off,
+				},
+			},
+			Row: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					Alignment: tw.AlignRight,
+					AutoWrap:  tw.WrapNone,
+				},
+			},
+		}),
+		tablewriter.WithRenderer(renderer.NewBlueprint(tw.Rendition{Symbols: tw.NewSymbols(style)})),
+		tablewriter.WithHeader(headers),
+	)
 
-	return b.String()
+	if err := table.Bulk(rows); err != nil {
+		return "", fmt.Errorf("%w: %w", errCouldntRenderTable, err)
+	}
+
+	if err := table.Render(); err != nil {
+		return "", fmt.Errorf("%w: %s", errCouldntRenderTable, err.Error())
+	}
+
+	return b.String(), nil
 }
 
 type versionInfo struct {
@@ -284,17 +314,20 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 	var err error
 	if config.HTMLTemplate != "" {
 		tmpl, err = template.New("ecsv").Parse(config.HTMLTemplate)
+		if err != nil {
+			return "", fmt.Errorf("%w: %s", ErrCouldntParseHTMLTemplate, err.Error())
+		}
 	} else {
-		tmpl, err = template.New("ecsv").Parse(htmlTemplate)
-	}
-	if err != nil {
-		return "", fmt.Errorf("%w: %s", errCouldntParseHTMLTemplate, err.Error())
+		tmpl, err = template.New("ecsv").Parse(builtInHTMLTemplate)
+		if err != nil {
+			return "", fmt.Errorf("%w: %s", ErrCouldntParseBuiltInHTMLTemplate, err.Error())
+		}
 	}
 
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, data)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", errCouldntRenderHTML, err.Error())
+		return "", fmt.Errorf("%w: %s", ErrCouldntRenderHTML, err.Error())
 	}
 
 	return buf.String(), nil

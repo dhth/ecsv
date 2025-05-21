@@ -17,6 +17,20 @@ func OutputFormats() []string {
 	return []string{"default", "table", "html"}
 }
 
+func (f OutputFmt) String() string {
+	var value string
+	switch f {
+	case DefaultFmt:
+		value = "default"
+	case HTMLFmt:
+		value = "html"
+	case TabularFmt:
+		value = "table"
+	}
+
+	return value
+}
+
 type AWSConfigSourceType uint
 
 const (

@@ -29,6 +29,7 @@ var (
 	htmlTitleURL     = flag.String("html-title-url", "https://github.com/dhth/ecsv", "url the title in the html output should point to")
 	style            = flag.String("style", types.ASCIIStyle.String(), fmt.Sprintf("style to use [possible values: %s]", strings.Join(types.TableStyleStrings(), ", ")))
 	showRegisteredAt = flag.Bool("show-registered-at", true, "whether to show the time when the task definition corresponding to a container was registered")
+	debug            = flag.Bool("debug", false, "whether to show debug information without running ecsv")
 )
 
 var (
@@ -185,6 +186,13 @@ func Execute() error {
 		HTMLTitleURL:     *htmlTitleURL,
 		Style:            tableStyle,
 		ShowRegisteredAt: *showRegisteredAt,
+	}
+
+	if *debug {
+		fmt.Printf(`config:
+%s
+`, config.String())
+		return nil
 	}
 
 	return process(systems, config, awsConfigs, maxConcFetches)

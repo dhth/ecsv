@@ -18,7 +18,7 @@
     <div class="w-2/3 max-sm:w-full max-sm:px-4 mx-auto min-h-screen pt-8">
         <h1 class="text-[#fbf1c7] text-3xl mb-4 font-semibold"><a href="{{.TitleURL}}" target="_blank">{{.Title}}</a></h1>
         <p class="text-[#928374] italic mt-4">Generated at {{.Timestamp}}</p>
-        <div class="mt-2 overflow-x-scroll">
+        <div class="mt-2 overflow-x-auto">
             <table class="table-auto w-full text-right max-sm:text-xs font-semibold whitespace-nowrap">
                 <thead>
                     <tr class="text-[#fbf1c7] bg-[#3c3836]">
@@ -43,7 +43,7 @@
             </table>
         </div>
 
-        <div class="overflow-x-scroll">
+        <div class="overflow-x-auto">
         {{if .Errors }}
         <p class="text-[#fb4934] text-lg font-bold mt-8">Errors</p>
             {{range $i, $error := .Errors -}}
