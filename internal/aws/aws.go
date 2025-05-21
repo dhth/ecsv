@@ -18,7 +18,7 @@ type Config struct {
 	Err    error
 }
 
-func GetConfig(system types.VersionConfig) (aws.Config, error) {
+func GetConfig(system types.VersionsConfig) (aws.Config, error) {
 	var cfg aws.Config
 	var err error
 	switch system.AWSConfigSourceType {
@@ -43,7 +43,7 @@ func GetConfig(system types.VersionConfig) (aws.Config, error) {
 	return cfg, err
 }
 
-func FetchSystemVersion(system types.VersionConfig, awsConfig Config) types.VersionResult {
+func FetchSystemVersion(system types.VersionsConfig, awsConfig Config) types.VersionResult {
 	ecsClient := ecs.NewFromConfig(awsConfig.Config)
 
 	services := make([]string, 1)

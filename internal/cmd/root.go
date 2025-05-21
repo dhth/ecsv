@@ -129,12 +129,12 @@ func Execute() error {
 		return fmt.Errorf("%w: %s", errCouldntReadConfigFile, err.Error())
 	}
 
-	envSequence, systemsConfig, err := readConfig(configBytes, keyFilterRegex)
+	envSequence, config, err := readConfig(configBytes, keyFilterRegex)
 	if err != nil {
 		return fmt.Errorf("%w: %s", errCouldntParseConfigFile, err.Error())
 	}
 
-	if len(systemsConfig.Versions) == 0 {
+	if len(config.Versions) == 0 {
 		return fmt.Errorf("%w", errNoSystemsFound)
 	}
 
@@ -149,7 +149,7 @@ func Execute() error {
 	var systemKeys []string
 	seenConfigs := make(map[string]bool)
 
-	for _, system := range systemsConfig.Versions {
+	for _, system := range config.Versions {
 		if !seenSystems[system.Key] {
 			systemKeys = append(systemKeys, system.Key)
 			seenSystems[system.Key] = true
@@ -165,7 +165,7 @@ func Execute() error {
 		}
 	}
 
-	uiConfig := ui.VersionsUIConfig{
+	uiConfig := ui.Config{
 		EnvSequence:      envSequence,
 		SystemKeys:       systemKeys,
 		OutputFmt:        outFormat,
@@ -183,5 +183,5 @@ func Execute() error {
 		return nil
 	}
 
-	return process(systemsConfig, uiConfig, awsConfigs, maxConcFetches)
+	return process(config, uiConfig, awsConfigs, maxConcFetches)
 }

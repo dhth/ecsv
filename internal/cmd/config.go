@@ -25,8 +25,8 @@ func expandTilde(path string, homeDir string) string {
 	return path
 }
 
-func readConfig(configBytes []byte, keyRegex *regexp.Regexp) ([]string, types.SystemsConfig, error) {
-	var zero types.SystemsConfig
+func readConfig(configBytes []byte, keyRegex *regexp.Regexp) ([]string, types.Config, error) {
+	var zero types.Config
 	ecsvConfig := types.ECSVConfig{}
 	err := yaml.Unmarshal(configBytes, &ecsvConfig)
 	if err != nil {

@@ -80,7 +80,7 @@ type ECSVConfig struct {
 	} `yaml:"systems"`
 }
 
-type VersionConfig struct {
+type VersionsConfig struct {
 	Key                 string
 	Env                 string
 	AWSConfigSourceType AWSConfigSourceType
@@ -102,15 +102,15 @@ type ChangesConfig struct {
 	Transform     *string
 }
 
-type SystemsConfig struct {
-	Versions []VersionConfig
+type Config struct {
+	Versions []VersionsConfig
 	Changes  []ChangesConfig
 }
 
-func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
-	var zero SystemsConfig
+func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (Config, []error) {
+	var zero Config
 
-	var versionConfigs []VersionConfig
+	var versionConfigs []VersionsConfig
 	var changesConfigs []ChangesConfig
 	var errors []error
 
@@ -141,7 +141,7 @@ func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
 			}
 
 			if len(systemErrors) == 0 {
-				versionConfigs = append(versionConfigs, VersionConfig{
+				versionConfigs = append(versionConfigs, VersionsConfig{
 					Key:                 system.Key,
 					Env:                 env.Name,
 					AWSConfigSourceType: awsConfigType,
@@ -203,13 +203,13 @@ func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
 		return zero, errors
 	}
 
-	return SystemsConfig{
+	return Config{
 		Versions: versionConfigs,
 		Changes:  changesConfigs,
 	}, nil
 }
 
-func (vc VersionConfig) AWSConfigKey() string {
+func (vc VersionsConfig) AWSConfigKey() string {
 	switch vc.AWSConfigSourceType {
 	case SharedCfgProfileType, AssumeRoleCfgType:
 		return vc.AWSConfigSource + ":" + vc.AWSRegion

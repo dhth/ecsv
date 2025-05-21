@@ -31,7 +31,7 @@ var (
 //go:embed assets/template.html
 var builtInHTMLTemplate string
 
-func GetOutput(config VersionsUIConfig,
+func GetOutput(config Config,
 	versionResults map[string]map[string]types.VersionResult,
 	changesResults []types.ChangesResult,
 ) (string, error) {
@@ -45,7 +45,7 @@ func GetOutput(config VersionsUIConfig,
 	}
 }
 
-func getTabularOutput(config VersionsUIConfig, results map[string]map[string]types.VersionResult) (string, error) {
+func getTabularOutput(config Config, results map[string]map[string]types.VersionResult) (string, error) {
 	rows := make([][]string, len(results))
 
 	for _, sys := range config.SystemKeys {
@@ -153,7 +153,7 @@ type versionInfo struct {
 	notFound     bool
 }
 
-func getTerminalOutput(config VersionsUIConfig, results map[string]map[string]types.VersionResult) string {
+func getTerminalOutput(config Config, results map[string]map[string]types.VersionResult) string {
 	var s string
 
 	s += "\n"
@@ -241,7 +241,7 @@ func getTerminalOutput(config VersionsUIConfig, results map[string]map[string]ty
 	return s
 }
 
-func getHTMLOutput(config VersionsUIConfig,
+func getHTMLOutput(config Config,
 	versionResults map[string]map[string]types.VersionResult,
 	changesResults []types.ChangesResult,
 ) (string, error) {
