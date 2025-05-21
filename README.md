@@ -84,7 +84,7 @@ ecsv -f table
 ecsv -f html > output.html
 ```
 
-![ecsv-terminal](https://github.com/user-attachments/assets/dbde169a-3253-42cd-b5ff-0f2f99cecf58)
+![ecsv-html](https://github.com/user-attachments/assets/dbde169a-3253-42cd-b5ff-0f2f99cecf58)
 
 Read more about outputting HTML in the [examples](./examples/html-template)
 directory.
