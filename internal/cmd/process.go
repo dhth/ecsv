@@ -9,7 +9,7 @@ import (
 	"github.com/dhth/ecsv/internal/ui"
 )
 
-func render(systems []types.System, config ui.Config, awsConfigs map[string]aws.Config, maxConcFetches int) error {
+func process(systems []types.System, config ui.Config, awsConfigs map[string]aws.Config, maxConcFetches int) error {
 	results := make(map[string]map[string]types.SystemResult)
 	resultChannel := make(chan types.SystemResult)
 

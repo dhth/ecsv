@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dhth/ecsv/cmd"
+	"github.com/dhth/ecsv/internal/cmd"
 )
 
 func main() {

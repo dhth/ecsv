@@ -187,5 +187,5 @@ func Execute() error {
 		ShowRegisteredAt: *showRegisteredAt,
 	}
 
-	return render(systems, config, awsConfigs, maxConcFetches)
+	return process(systems, config, awsConfigs, maxConcFetches)
 }
