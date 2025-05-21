@@ -7,15 +7,17 @@ import (
 	"github.com/dhth/ecsv/internal/types"
 )
 
-type HTMLDataRow struct {
+type VersionRow struct {
 	Data   []string
 	InSync bool
 }
+
 type HTMLData struct {
 	Title     string
 	TitleURL  string
 	Columns   []string
-	Rows      []HTMLDataRow
+	Rows      []VersionRow
+	Changes   []types.ChangesResult
 	Errors    []error
 	Timestamp string
 }

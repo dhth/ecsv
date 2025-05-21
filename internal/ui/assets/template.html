@@ -7,10 +7,13 @@
     <title>{{.Title}}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: "Open Sans", sans-serif;
+        }
+        .changes-section {
+            font-family: "Fira Mono", monospace;
         }
     </style>
 </head>
@@ -44,6 +47,44 @@
         </div>
 
         <div class="overflow-x-auto">
+        {{if .Changes }}
+        <div class="flex gap-4 items-center mt-8">
+            <p class="text-[#fabd2f] text-xl font-semibold">Changes</p>
+            <button class="bg-[#83a598] text-[#282828] font-semibold text-xs p-2 hover:bg-[#fabd2f]" onclick="toggleAllDetails()">
+                Toggle All
+            </button>
+        </div>
+            {{range .Changes -}}
+            <div class="my-4 overflow-x-auto">
+                <details>
+                    <summary class="text-[#83a598] cursor-pointer max-sm:text-sm">{{.SystemKey}}</summary>
+                    <div class="mt-2 max-sm:p-2 p-4 bg-[#2e2c2c] changes-section max-sm:text-xs text-sm">
+                        {{if .Error}}
+                        <p class="text-[#fb4934]">Error: {{.Error}}</p>
+                        {{else if .Commits}}
+                            <div class="flex flex-col items-left gap-2 overflow-x-auto">
+                                <table class="w-full text-left max-sm:text-xs text-sm whitespace-nowrap">
+                                    <tbody>
+                                    {{range .Commits}}
+                                        <tr class="">
+                                            <td class="p-1 text-[#fabd2f]"><a target="_blank" href={{.HTMLURL}}>{{.SHA}}</a></td>
+                                            <td class="p-1 text-[#83a598]"><a target="_blank" href={{.HTMLURL}}>{{.Message}}</a></td>
+                                            <td class="p-1 text-[#d3869b]"><a target="_blank" href={{.HTMLURL}}>{{.Author}}</a></td>
+                                            <td class="p-1 text-[#bdae93]"><a target="_blank" href={{.HTMLURL}}>{{.AuthoredAt}}</a></td>
+                                        </tr>
+                                    </tbody>
+                                    {{end -}}
+                                </table>
+                            </div>
+                        {{end -}}
+                    </div>
+                </details>
+            </div>
+            {{end -}}
+        {{end -}}
+        </div>
+
+        <div class="overflow-x-auto">
         {{if .Errors }}
         <p class="text-[#fb4934] text-lg font-bold mt-8">Errors</p>
             {{range $i, $error := .Errors -}}
@@ -53,5 +94,29 @@
         </div>
         <p class="text-[#928374] italic my-10 pt-2 border-t-2 border-[#928374] border-opacity-20">Built using <a class="font-bold" href="https://github.com/dhth/ecsv" target="_blank">ecsv</a></p>
     </div>
+    <button id="scrollToTop" onclick="window.scrollTo({top: 0, behavior: 'instant'});"
+      class="hidden fixed bottom-4 left-4 z-50 bg-[#928374] text-[#282828] px-4 py-2 rounded-full shadow-lg hover:bg-[#d3869b] font-bold transition"
+      aria-label="Go to top">
+      ↑
+    </button>
 </body>
+<script>
+const scrollToTopButton = document.getElementById("scrollToTop");
+let allDetailsOpen = false;
+
+function toggleAllDetails() {
+	allDetailsOpen = !allDetailsOpen;
+	document.querySelectorAll("details").forEach((detail) => {
+		detail.open = allDetailsOpen;
+	});
+}
+
+window.addEventListener("scroll", function () {
+	if (window.scrollY > 100) {
+		scrollToTopButton.classList.remove("hidden");
+	} else {
+		scrollToTopButton.classList.add("hidden");
+	}
+});
+</script>
 </html>

@@ -2,15 +2,24 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"sort"
 	"sync"
 
 	"github.com/dhth/ecsv/internal/aws"
+	"github.com/dhth/ecsv/internal/changes"
 	"github.com/dhth/ecsv/internal/types"
 	"github.com/dhth/ecsv/internal/ui"
+	"github.com/google/go-github/v72/github"
 )
 
-func process(systemsConfig types.SystemsConfig, uiConfig ui.VersionsUIConfig, awsConfigs map[string]aws.Config, maxConcFetches int) error {
-	results := make(map[string]map[string]types.VersionResult)
+func process(
+	systemsConfig types.SystemsConfig,
+	uiConfig ui.VersionsUIConfig,
+	awsConfigs map[string]aws.Config,
+	maxConcFetches int,
+) error {
+	versionResults := make(map[string]map[string]types.VersionResult)
 	resultChannel := make(chan types.VersionResult)
 
 	semaphore := make(chan struct{}, maxConcFetches)
@@ -18,13 +27,13 @@ func process(systemsConfig types.SystemsConfig, uiConfig ui.VersionsUIConfig, aw
 
 	for _, s := range systemsConfig.Versions {
 		awsConfig := awsConfigs[s.AWSConfigKey()]
-		if results[s.Key] == nil {
-			results[s.Key] = make(map[string]types.VersionResult)
+		if versionResults[s.Key] == nil {
+			versionResults[s.Key] = make(map[string]types.VersionResult)
 		}
-		results[s.Key][s.Env] = types.VersionResult{}
+		versionResults[s.Key][s.Env] = types.VersionResult{}
 
 		if awsConfig.Err != nil {
-			results[s.Key][s.Env] = types.VersionResult{
+			versionResults[s.Key][s.Env] = types.VersionResult{
 				SystemKey: s.Key,
 				Env:       s.Env,
 				Err:       awsConfig.Err,
@@ -50,10 +59,77 @@ func process(systemsConfig types.SystemsConfig, uiConfig ui.VersionsUIConfig, aw
 	}()
 
 	for r := range resultChannel {
-		results[r.SystemKey][r.Env] = r
+		versionResults[r.SystemKey][r.Env] = r
 	}
 
-	output, err := ui.GetOutput(uiConfig, results)
+	changelogResultChan := make(chan types.ChangesResult)
+
+	//nolint:prealloc
+	var changesResults []types.ChangesResult
+
+	cLSemaphore := make(chan struct{}, maxConcFetches)
+	var clWg sync.WaitGroup
+
+	client := github.NewClient(nil).WithAuthToken(os.Getenv("GH_TOKEN"))
+	for _, changesConfig := range systemsConfig.Changes {
+		vrm, ok := versionResults[changesConfig.SystemKey]
+
+		// TODO: handle these conditions related to inconsistent state
+		if !ok {
+			continue
+		}
+
+		vrBase, ok := vrm[changesConfig.Base]
+		if !ok {
+			continue
+		}
+
+		if vrBase.Err != nil {
+			continue
+		}
+
+		vrHead, ok := vrm[changesConfig.Head]
+		if !ok {
+			continue
+		}
+
+		if vrHead.Err != nil {
+			continue
+		}
+
+		if vrBase == vrHead {
+			continue
+		}
+
+		clWg.Add(1)
+		go func(systemKey, owner, repo, baseRef, headRef string) {
+			defer clWg.Done()
+			cLSemaphore <- struct{}{}
+			defer func() {
+				<-cLSemaphore
+			}()
+			changelogResultChan <- changes.FetchChanges(client, systemKey, owner, repo, baseRef, headRef)
+		}(changesConfig.SystemKey,
+			changesConfig.Owner,
+			changesConfig.Repo,
+			vrBase.Version,
+			vrHead.Version)
+	}
+
+	go func() {
+		clWg.Wait()
+		close(changelogResultChan)
+	}()
+
+	for r := range changelogResultChan {
+		changesResults = append(changesResults, r)
+	}
+
+	sort.Slice(changesResults, func(i, j int) bool {
+		return changesResults[i].SystemKey < changesResults[j].SystemKey
+	})
+
+	output, err := ui.GetOutput(uiConfig, versionResults, changesResults)
 	if err != nil {
 		return err
 	}

@@ -13,10 +13,10 @@ import (
 
 var (
 	errInvalidConfigSourceProvided = errors.New("invalid aws-system-source provided")
-	errVcsPlatformisInvalid        = errors.New("invalid VCS platform provided")
-	errChangelogRepoIsEmpty        = errors.New("repo is empty")
-	errChangelogBaseNotInEnvs      = errors.New("changelog base is not in the provided envs")
-	errChangelogHeadNotInEnvs      = errors.New("changelog head is not in the provided envs")
+	errChangesOwnerIsEmpty         = errors.New("changes owner is empty")
+	errChangesRepoIsEmpty          = errors.New("changes repo is empty")
+	errChangesBaseNotInEnvs        = errors.New("changes base is not in the provided envs")
+	errChangesHeadNotInEnvs        = errors.New("changes head is not in the provided envs")
 	errSystemConfigIsIncorrect     = errors.New("system config is incorrect")
 )
 
@@ -27,21 +27,6 @@ const (
 	TabularFmt
 	HTMLFmt
 )
-
-type VCSPlatformType uint
-
-const (
-	Github VCSPlatformType = iota
-)
-
-func stringToPlatform(value string) (VCSPlatformType, bool) {
-	var zero VCSPlatformType
-	if value == "github" {
-		return Github, true
-	}
-
-	return zero, false
-}
 
 func OutputFormats() []string {
 	return []string{"default", "table", "html"}
@@ -69,11 +54,11 @@ const (
 	AssumeRoleCfgType
 )
 
-type changeLogConfig struct {
-	VCSPlatform string `yaml:"vcs-platform"`
-	Repo        string `yaml:"repo"`
-	Base        string `yaml:"base"`
-	Head        string `yaml:"head"`
+type changesConfig struct {
+	Owner string `yaml:"owner"`
+	Repo  string `yaml:"repo"`
+	Base  string `yaml:"base"`
+	Head  string `yaml:"head"`
 }
 
 type ECSVConfig struct {
@@ -88,7 +73,7 @@ type ECSVConfig struct {
 			Service         string `yaml:"service"`
 			ContainerName   string `yaml:"container-name"`
 		} `yaml:"envs"`
-		ChangelogConfig *changeLogConfig `yaml:"changelog"`
+		ChangesConfig *changesConfig `yaml:"changes"`
 	} `yaml:"systems"`
 }
 
@@ -104,24 +89,24 @@ type VersionConfig struct {
 	ContainerName       string
 }
 
-type ChangeLogConfig struct {
-	SystemKey   string
-	VCSPlatform VCSPlatformType
-	Repo        string
-	Base        string
-	Head        string
+type ChangesConfig struct {
+	SystemKey string
+	Owner     string
+	Repo      string
+	Base      string
+	Head      string
 }
 
 type SystemsConfig struct {
-	Versions   []VersionConfig
-	Changelogs []ChangeLogConfig
+	Versions []VersionConfig
+	Changes  []ChangesConfig
 }
 
 func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
 	var zero SystemsConfig
 
-	var versions []VersionConfig
-	var changelogs []ChangeLogConfig
+	var versionConfigs []VersionConfig
+	var changesConfigs []ChangesConfig
 	var errors []error
 
 	for i, system := range c.Systems {
@@ -151,7 +136,7 @@ func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
 			}
 
 			if len(systemErrors) == 0 {
-				versions = append(versions, VersionConfig{
+				versionConfigs = append(versionConfigs, VersionConfig{
 					Key:                 system.Key,
 					Env:                 env.Name,
 					AWSConfigSourceType: awsConfigType,
@@ -164,31 +149,30 @@ func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
 			}
 		}
 
-		if system.ChangelogConfig != nil {
-			vcs, ok := stringToPlatform(system.ChangelogConfig.VCSPlatform)
-			if !ok {
-				systemErrors = append(systemErrors, errVcsPlatformisInvalid)
+		if system.ChangesConfig != nil {
+			if strings.TrimSpace(system.ChangesConfig.Owner) == "" {
+				systemErrors = append(systemErrors, errChangesOwnerIsEmpty)
 			}
 
-			if strings.TrimSpace(system.ChangelogConfig.Repo) == "" {
-				systemErrors = append(systemErrors, errChangelogRepoIsEmpty)
+			if strings.TrimSpace(system.ChangesConfig.Repo) == "" {
+				systemErrors = append(systemErrors, errChangesRepoIsEmpty)
 			}
 
-			if !slices.Contains(systemEnvs, system.ChangelogConfig.Base) {
-				systemErrors = append(systemErrors, errChangelogBaseNotInEnvs)
+			if !slices.Contains(systemEnvs, system.ChangesConfig.Base) {
+				systemErrors = append(systemErrors, errChangesBaseNotInEnvs)
 			}
 
-			if !slices.Contains(systemEnvs, system.ChangelogConfig.Head) {
-				systemErrors = append(systemErrors, errChangelogHeadNotInEnvs)
+			if !slices.Contains(systemEnvs, system.ChangesConfig.Head) {
+				systemErrors = append(systemErrors, errChangesHeadNotInEnvs)
 			}
 
 			if len(systemErrors) == 0 {
-				changelogs = append(changelogs, ChangeLogConfig{
-					SystemKey:   system.Key,
-					VCSPlatform: vcs,
-					Repo:        system.ChangelogConfig.Repo,
-					Base:        system.ChangelogConfig.Base,
-					Head:        system.ChangelogConfig.Head,
+				changesConfigs = append(changesConfigs, ChangesConfig{
+					SystemKey: system.Key,
+					Owner:     system.ChangesConfig.Owner,
+					Repo:      system.ChangesConfig.Repo,
+					Base:      system.ChangesConfig.Base,
+					Head:      system.ChangesConfig.Head,
 				})
 			}
 		}
@@ -203,8 +187,8 @@ func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
 	}
 
 	return SystemsConfig{
-		Versions:   versions,
-		Changelogs: changelogs,
+		Versions: versionConfigs,
+		Changes:  changesConfigs,
 	}, nil
 }
 
@@ -224,6 +208,20 @@ type VersionResult struct {
 	Found        bool
 	RegisteredAt *time.Time
 	Err          error
+}
+
+type ChangesResult struct {
+	SystemKey string
+	Commits   []Commit
+	Error     error
+}
+
+type Commit struct {
+	SHA        string
+	Message    string
+	HTMLURL    string
+	Author     string
+	AuthoredAt string
 }
 
 type TableStyle string

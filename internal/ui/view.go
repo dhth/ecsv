@@ -31,14 +31,17 @@ var (
 //go:embed assets/template.html
 var builtInHTMLTemplate string
 
-func GetOutput(config VersionsUIConfig, results map[string]map[string]types.VersionResult) (string, error) {
+func GetOutput(config VersionsUIConfig,
+	versionResults map[string]map[string]types.VersionResult,
+	changesResults []types.ChangesResult,
+) (string, error) {
 	switch config.OutputFmt {
 	case types.TabularFmt:
-		return getTabularOutput(config, results)
+		return getTabularOutput(config, versionResults)
 	case types.HTMLFmt:
-		return getHTMLOutput(config, results)
+		return getHTMLOutput(config, versionResults, changesResults)
 	default:
-		return getTerminalOutput(config, results), nil
+		return getTerminalOutput(config, versionResults), nil
 	}
 }
 
@@ -238,13 +241,17 @@ func getTerminalOutput(config VersionsUIConfig, results map[string]map[string]ty
 	return s
 }
 
-func getHTMLOutput(config VersionsUIConfig, results map[string]map[string]types.VersionResult) (string, error) {
+func getHTMLOutput(config VersionsUIConfig,
+	versionResults map[string]map[string]types.VersionResult,
+	changesResults []types.ChangesResult,
+) (string, error) {
 	var columns []string
-	rows := make([]HTMLDataRow, len(config.SystemKeys))
+	rows := make([]VersionRow, len(config.SystemKeys))
 
 	data := HTMLData{
 		Title:    config.HTMLTitle,
 		TitleURL: config.HTMLTitleURL,
+		Changes:  changesResults,
 	}
 
 	columns = append(columns, "system")
@@ -258,7 +265,7 @@ func getHTMLOutput(config VersionsUIConfig, results map[string]map[string]types.
 		var versions []versionInfo
 		var inSync bool
 		for _, env := range config.EnvSequence {
-			r, ok := results[sys][env]
+			r, ok := versionResults[sys][env]
 			if !ok {
 				versions = append(versions, versionInfo{})
 				continue
@@ -298,7 +305,7 @@ func getHTMLOutput(config VersionsUIConfig, results map[string]map[string]types.
 			}
 		}
 
-		rows[i] = HTMLDataRow{
+		rows[i] = VersionRow{
 			Data:   rowData,
 			InSync: inSync,
 		}
