@@ -230,6 +230,7 @@ type VersionResult struct {
 type ChangesResult struct {
 	Config  ChangesConfig
 	Commits []Commit
+	DiffURL string
 	Error   error
 }
 

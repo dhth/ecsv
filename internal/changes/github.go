@@ -2,6 +2,7 @@ package changes
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -78,5 +79,6 @@ func FetchChanges(
 	return types.ChangesResult{
 		Config:  config,
 		Commits: commits,
+		DiffURL: fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", config.Owner, config.Repo, baseRefToUse, headRefToUse),
 	}
 }

@@ -62,7 +62,10 @@
                         {{if .Error}}
                         <p class="text-[#fb4934]">Error: {{.Error}}</p>
                         {{else if .Commits}}
-                            <div class="flex flex-col items-left gap-2 overflow-x-auto">
+                            <div class="flex flex-col items-left gap-4 overflow-x-auto">
+                                {{if .DiffURL}}
+                                <a class="text-[#928374]" href={{.DiffURL}} target="_blank">{{.Config.Base}}...{{.Config.Head}}</a>
+                                {{end -}}
                                 <table class="w-full text-left max-sm:text-xs text-sm whitespace-nowrap">
                                     <tbody>
                                     {{range .Commits}}
