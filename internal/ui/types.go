@@ -20,7 +20,7 @@ type HTMLData struct {
 	Timestamp string
 }
 
-type Config struct {
+type VersionsUIConfig struct {
 	EnvSequence      []string
 	SystemKeys       []string
 	OutputFmt        types.OutputFmt
@@ -31,7 +31,7 @@ type Config struct {
 	ShowRegisteredAt bool
 }
 
-func (c Config) String() string {
+func (c VersionsUIConfig) String() string {
 	return strings.TrimSpace(fmt.Sprintf(`
 - env sequence          %v
 - system keys           %v

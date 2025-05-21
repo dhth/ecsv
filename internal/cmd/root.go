@@ -43,7 +43,6 @@ var (
 	errTemplateFileDoesntExit    = errors.New("template file doesn't exist")
 	errCouldntReadTemplateFile   = errors.New("couldn't read template file")
 	errIncorrectFormatProvided   = errors.New("incorrect value for format provided")
-	errEnvNotInEnvSequence       = errors.New("env not present in env-sequence")
 	errNoSystemsFound            = errors.New("no systems found")
 	errIncorrectStyleProvided    = errors.New("incorrect style provided")
 	errIncorrectKeyRegexProvided = errors.New("incorrect key regex provided")
@@ -130,23 +129,12 @@ func Execute() error {
 		return fmt.Errorf("%w: %s", errCouldntReadConfigFile, err.Error())
 	}
 
-	envSequence, systems, err := readConfig(configBytes, keyFilterRegex)
+	envSequence, systemsConfig, err := readConfig(configBytes, keyFilterRegex)
 	if err != nil {
 		return fmt.Errorf("%w: %s", errCouldntParseConfigFile, err.Error())
 	}
 
-	// assert that all envs are present in env-sequence
-	seqMap := make(map[string]bool)
-	for _, s := range envSequence {
-		seqMap[s] = true
-	}
-	for _, s := range systems {
-		if !seqMap[s.Env] {
-			return fmt.Errorf("%w: %s", errEnvNotInEnvSequence, s.Env)
-		}
-	}
-
-	if len(systems) == 0 {
+	if len(systemsConfig.Versions) == 0 {
 		return fmt.Errorf("%w", errNoSystemsFound)
 	}
 
@@ -161,7 +149,7 @@ func Execute() error {
 	var systemKeys []string
 	seenConfigs := make(map[string]bool)
 
-	for _, system := range systems {
+	for _, system := range systemsConfig.Versions {
 		if !seenSystems[system.Key] {
 			systemKeys = append(systemKeys, system.Key)
 			seenSystems[system.Key] = true
@@ -177,7 +165,7 @@ func Execute() error {
 		}
 	}
 
-	config := ui.Config{
+	uiConfig := ui.VersionsUIConfig{
 		EnvSequence:      envSequence,
 		SystemKeys:       systemKeys,
 		OutputFmt:        outFormat,
@@ -191,9 +179,9 @@ func Execute() error {
 	if *debug {
 		fmt.Printf(`config:
 %s
-`, config.String())
+`, uiConfig.String())
 		return nil
 	}
 
-	return process(systems, config, awsConfigs, maxConcFetches)
+	return process(systemsConfig, uiConfig, awsConfigs, maxConcFetches)
 }

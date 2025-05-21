@@ -31,7 +31,7 @@ var (
 //go:embed assets/template.html
 var builtInHTMLTemplate string
 
-func GetOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
+func GetOutput(config VersionsUIConfig, results map[string]map[string]types.VersionResult) (string, error) {
 	switch config.OutputFmt {
 	case types.TabularFmt:
 		return getTabularOutput(config, results)
@@ -42,7 +42,7 @@ func GetOutput(config Config, results map[string]map[string]types.SystemResult) 
 	}
 }
 
-func getTabularOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
+func getTabularOutput(config VersionsUIConfig, results map[string]map[string]types.VersionResult) (string, error) {
 	rows := make([][]string, len(results))
 
 	for _, sys := range config.SystemKeys {
@@ -150,7 +150,7 @@ type versionInfo struct {
 	notFound     bool
 }
 
-func getTerminalOutput(config Config, results map[string]map[string]types.SystemResult) string {
+func getTerminalOutput(config VersionsUIConfig, results map[string]map[string]types.VersionResult) string {
 	var s string
 
 	s += "\n"
@@ -238,7 +238,7 @@ func getTerminalOutput(config Config, results map[string]map[string]types.System
 	return s
 }
 
-func getHTMLOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
+func getHTMLOutput(config VersionsUIConfig, results map[string]map[string]types.VersionResult) (string, error) {
 	var columns []string
 	rows := make([]HTMLDataRow, len(config.SystemKeys))
 
