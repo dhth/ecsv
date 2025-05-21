@@ -12,12 +12,13 @@ import (
 )
 
 var (
-	errInvalidConfigSourceProvided = errors.New("invalid aws-system-source provided")
-	errChangesOwnerIsEmpty         = errors.New("changes owner is empty")
-	errChangesRepoIsEmpty          = errors.New("changes repo is empty")
-	errChangesBaseNotInEnvs        = errors.New("changes base is not in the provided envs")
-	errChangesHeadNotInEnvs        = errors.New("changes head is not in the provided envs")
-	errSystemConfigIsIncorrect     = errors.New("system config is incorrect")
+	errInvalidConfigSourceProvided   = errors.New("invalid aws-system-source provided")
+	errChangesOwnerIsEmpty           = errors.New("owner (under changes) is empty")
+	errChangesRepoIsEmpty            = errors.New("repo (under changes)  is empty")
+	errChangesBaseNotInEnvs          = errors.New("base (under changes) is not in the provided envs")
+	errChangesHeadNotInEnvs          = errors.New("head (under changes) is not in the provided envs")
+	errChangesIgnorePatternIncorrect = errors.New("ignore pattern (under changes) is not valid regex")
+	errSystemConfigIsIncorrect       = errors.New("system config is incorrect")
 )
 
 type OutputFmt uint
@@ -55,10 +56,11 @@ const (
 )
 
 type changesConfig struct {
-	Owner string `yaml:"owner"`
-	Repo  string `yaml:"repo"`
-	Base  string `yaml:"base"`
-	Head  string `yaml:"head"`
+	Owner         string  `yaml:"owner"`
+	Repo          string  `yaml:"repo"`
+	Base          string  `yaml:"base"`
+	Head          string  `yaml:"head"`
+	IgnorePattern *string `yaml:"ignore-pattern"`
 }
 
 type ECSVConfig struct {
@@ -90,11 +92,12 @@ type VersionConfig struct {
 }
 
 type ChangesConfig struct {
-	SystemKey string
-	Owner     string
-	Repo      string
-	Base      string
-	Head      string
+	SystemKey     string
+	Owner         string
+	Repo          string
+	Base          string
+	Head          string
+	IgnorePattern *regexp.Regexp
 }
 
 type SystemsConfig struct {
@@ -166,19 +169,30 @@ func (c ECSVConfig) Parse(keyRegex *regexp.Regexp) (SystemsConfig, []error) {
 				systemErrors = append(systemErrors, errChangesHeadNotInEnvs)
 			}
 
+			var ignorePattern *regexp.Regexp
+			if system.ChangesConfig.IgnorePattern != nil {
+				ip, err := regexp.Compile(*system.ChangesConfig.IgnorePattern)
+				if err != nil {
+					systemErrors = append(systemErrors, fmt.Errorf("%w: %s", errChangesIgnorePatternIncorrect, err.Error()))
+				} else {
+					ignorePattern = ip
+				}
+			}
+
 			if len(systemErrors) == 0 {
 				changesConfigs = append(changesConfigs, ChangesConfig{
-					SystemKey: system.Key,
-					Owner:     system.ChangesConfig.Owner,
-					Repo:      system.ChangesConfig.Repo,
-					Base:      system.ChangesConfig.Base,
-					Head:      system.ChangesConfig.Head,
+					SystemKey:     system.Key,
+					Owner:         system.ChangesConfig.Owner,
+					Repo:          system.ChangesConfig.Repo,
+					Base:          system.ChangesConfig.Base,
+					Head:          system.ChangesConfig.Head,
+					IgnorePattern: ignorePattern,
 				})
 			}
 		}
 
 		if len(systemErrors) > 0 {
-			errors = append(errors, fmt.Errorf("%w; index: %d, errors: %v", errSystemConfigIsIncorrect, i, systemErrors))
+			errors = append(errors, fmt.Errorf("%w; index: %d, errors: %v", errSystemConfigIsIncorrect, i+1, systemErrors))
 		}
 	}
 

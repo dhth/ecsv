@@ -97,7 +97,7 @@ func process(
 			continue
 		}
 
-		if vrBase == vrHead {
+		if vrBase.Version == vrHead.Version {
 			continue
 		}
 
@@ -108,7 +108,13 @@ func process(
 			defer func() {
 				<-cLSemaphore
 			}()
-			changelogResultChan <- changes.FetchChanges(client, systemKey, owner, repo, baseRef, headRef)
+			changelogResultChan <- changes.FetchChanges(client,
+				systemKey,
+				owner,
+				repo,
+				baseRef,
+				headRef,
+				changesConfig.IgnorePattern)
 		}(changesConfig.SystemKey,
 			changesConfig.Owner,
 			changesConfig.Repo,

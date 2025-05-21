@@ -2,6 +2,7 @@ package changes
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"time"
 
@@ -9,7 +10,15 @@ import (
 	"github.com/google/go-github/v72/github"
 )
 
-func FetchChanges(client *github.Client, systemKey, owner, repo, baseRef, headRef string) types.ChangesResult {
+func FetchChanges(
+	client *github.Client,
+	systemKey,
+	owner,
+	repo,
+	baseRef,
+	headRef string,
+	ignorePattern *regexp.Regexp,
+) types.ChangesResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -26,8 +35,9 @@ func FetchChanges(client *github.Client, systemKey, owner, repo, baseRef, headRe
 		}
 	}
 
-	commits := make([]types.Commit, comparison.GetTotalCommits())
-	for i, commit := range comparison.Commits {
+	//nolint:prealloc
+	var commits []types.Commit
+	for _, commit := range comparison.Commits {
 		author := commit.GetCommit().GetAuthor()
 		var ca string
 		var at string
@@ -41,15 +51,19 @@ func FetchChanges(client *github.Client, systemKey, owner, repo, baseRef, headRe
 			sha = sha[:8]
 		}
 
+		if ignorePattern != nil && ignorePattern.Match([]byte(commit.Commit.GetMessage())) {
+			continue
+		}
+
 		message := strings.Split(commit.Commit.GetMessage(), "\n")[0]
 
-		commits[i] = types.Commit{
+		commits = append(commits, types.Commit{
 			SHA:        sha,
 			Message:    message,
 			HTMLURL:    commit.GetHTMLURL(),
 			Author:     ca,
 			AuthoredAt: at,
-		}
+		})
 
 	}
 
