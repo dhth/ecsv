@@ -147,7 +147,7 @@ func process(
 		return err
 	}
 
-	if uiConfig.OutputFmt == types.HTMLFmt && uiConfig.HTMLOpen {
+	if uiConfig.OutputFmt == types.HTMLFmt && uiConfig.HTMLConfig.Open {
 		err := writeToTempFileAndOpen(output)
 		if err != nil {
 			return fmt.Errorf("%w: %s", ErrCouldntOpenHTMLOutput, err.Error())

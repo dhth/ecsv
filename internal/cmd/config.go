@@ -3,7 +3,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -17,13 +16,6 @@ var (
 	errConfigIsInvalid     = errors.New("invalid config provided")
 	errEnvNotInEnvSequence = errors.New("env not present in env-sequence")
 )
-
-func expandTilde(path string, homeDir string) string {
-	if strings.HasPrefix(path, "~/") {
-		return filepath.Join(homeDir, path[2:])
-	}
-	return path
-}
 
 func readConfig(configBytes []byte, keyRegex *regexp.Regexp) ([]string, types.Config, error) {
 	var zero types.Config

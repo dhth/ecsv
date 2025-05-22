@@ -26,32 +26,65 @@ type Config struct {
 	EnvSequence      []string
 	SystemKeys       []string
 	OutputFmt        types.OutputFmt
-	HTMLTemplate     string
-	HTMLTitle        string
-	HTMLTitleURL     string
-	HTMLOpen         bool
-	Style            types.TableStyle
+	HTMLConfig       HTMLOutputConfig
+	TableConfig      TableOutputConfig
 	ShowRegisteredAt bool
 }
 
+type HTMLOutputConfig struct {
+	Template string
+	Title    string
+	TitleURL string
+	Open     bool
+}
+
+type TableOutputConfig struct {
+	Style types.TableStyle
+}
+
 func (c Config) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`
+	switch c.OutputFmt {
+	case types.HTMLFmt:
+		return strings.TrimSpace(fmt.Sprintf(`
 - env sequence          %v
 - system keys           %v
 - output format         %s
 - html title            %s
 - html title url        %s
-- style                 %s
 - show registererd url  %v
 `,
-		c.EnvSequence,
-		c.SystemKeys,
-		c.OutputFmt.String(),
-		c.HTMLTitle,
-		c.HTMLTitleURL,
-		c.Style.String(),
-		c.ShowRegisteredAt,
-	))
+			c.EnvSequence,
+			c.SystemKeys,
+			c.OutputFmt.String(),
+			c.HTMLConfig.Title,
+			c.HTMLConfig.TitleURL,
+			c.ShowRegisteredAt,
+		))
+	case types.TabularFmt:
+		return strings.TrimSpace(fmt.Sprintf(`
+- env sequence          %v
+- system keys           %v
+- output format         %s
+- style                 %s
+`,
+			c.EnvSequence,
+			c.SystemKeys,
+			c.OutputFmt.String(),
+			c.TableConfig.Style.String(),
+		))
+	default:
+		return strings.TrimSpace(fmt.Sprintf(`
+- env sequence          %v
+- system keys           %v
+- output format         %s
+- show registererd url  %v
+`,
+			c.EnvSequence,
+			c.SystemKeys,
+			c.OutputFmt.String(),
+			c.ShowRegisteredAt,
+		))
+	}
 }
 
 type SystemResult struct {

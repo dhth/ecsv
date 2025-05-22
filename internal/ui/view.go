@@ -103,7 +103,7 @@ func getTabularOutput(config Config, results map[string]map[string]types.Version
 	headers = append(headers, config.EnvSequence...)
 
 	var style tw.BorderStyle
-	switch config.Style {
+	switch config.TableConfig.Style {
 	case types.BlankStyle:
 		style = tw.StyleNone
 	case types.DotsStyle:
@@ -249,8 +249,8 @@ func getHTMLOutput(config Config,
 	rows := make([]VersionRow, len(config.SystemKeys))
 
 	data := HTMLData{
-		Title:    config.HTMLTitle,
-		TitleURL: config.HTMLTitleURL,
+		Title:    config.HTMLConfig.Title,
+		TitleURL: config.HTMLConfig.TitleURL,
 		Changes:  changesResults,
 	}
 
@@ -319,8 +319,8 @@ func getHTMLOutput(config Config,
 
 	var tmpl *template.Template
 	var err error
-	if config.HTMLTemplate != "" {
-		tmpl, err = template.New("ecsv").Parse(config.HTMLTemplate)
+	if config.HTMLConfig.Template != "" {
+		tmpl, err = template.New("ecsv").Parse(config.HTMLConfig.Template)
 		if err != nil {
 			return "", fmt.Errorf("%w: %s", ErrCouldntParseHTMLTemplate, err.Error())
 		}
