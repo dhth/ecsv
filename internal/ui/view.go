@@ -31,18 +31,21 @@ var (
 //go:embed assets/template.html
 var builtInHTMLTemplate string
 
-func GetOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
+func GetOutput(config Config,
+	versionResults map[string]map[string]types.VersionResult,
+	changesResults []types.ChangesResult,
+) (string, error) {
 	switch config.OutputFmt {
 	case types.TabularFmt:
-		return getTabularOutput(config, results)
+		return getTabularOutput(config, versionResults)
 	case types.HTMLFmt:
-		return getHTMLOutput(config, results)
+		return getHTMLOutput(config, versionResults, changesResults)
 	default:
-		return getTerminalOutput(config, results), nil
+		return getTerminalOutput(config, versionResults), nil
 	}
 }
 
-func getTabularOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
+func getTabularOutput(config Config, results map[string]map[string]types.VersionResult) (string, error) {
 	rows := make([][]string, len(results))
 
 	for _, sys := range config.SystemKeys {
@@ -100,7 +103,7 @@ func getTabularOutput(config Config, results map[string]map[string]types.SystemR
 	headers = append(headers, config.EnvSequence...)
 
 	var style tw.BorderStyle
-	switch config.Style {
+	switch config.TableConfig.Style {
 	case types.BlankStyle:
 		style = tw.StyleNone
 	case types.DotsStyle:
@@ -150,7 +153,7 @@ type versionInfo struct {
 	notFound     bool
 }
 
-func getTerminalOutput(config Config, results map[string]map[string]types.SystemResult) string {
+func getTerminalOutput(config Config, results map[string]map[string]types.VersionResult) string {
 	var s string
 
 	s += "\n"
@@ -238,13 +241,17 @@ func getTerminalOutput(config Config, results map[string]map[string]types.System
 	return s
 }
 
-func getHTMLOutput(config Config, results map[string]map[string]types.SystemResult) (string, error) {
+func getHTMLOutput(config Config,
+	versionResults map[string]map[string]types.VersionResult,
+	changesResults []types.ChangesResult,
+) (string, error) {
 	var columns []string
-	rows := make([]HTMLDataRow, len(config.SystemKeys))
+	rows := make([]VersionRow, len(config.SystemKeys))
 
 	data := HTMLData{
-		Title:    config.HTMLTitle,
-		TitleURL: config.HTMLTitleURL,
+		Title:    config.HTMLConfig.Title,
+		TitleURL: config.HTMLConfig.TitleURL,
+		Changes:  changesResults,
 	}
 
 	columns = append(columns, "system")
@@ -258,7 +265,7 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 		var versions []versionInfo
 		var inSync bool
 		for _, env := range config.EnvSequence {
-			r, ok := results[sys][env]
+			r, ok := versionResults[sys][env]
 			if !ok {
 				versions = append(versions, versionInfo{})
 				continue
@@ -298,7 +305,7 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 			}
 		}
 
-		rows[i] = HTMLDataRow{
+		rows[i] = VersionRow{
 			Data:   rowData,
 			InSync: inSync,
 		}
@@ -312,8 +319,8 @@ func getHTMLOutput(config Config, results map[string]map[string]types.SystemResu
 
 	var tmpl *template.Template
 	var err error
-	if config.HTMLTemplate != "" {
-		tmpl, err = template.New("ecsv").Parse(config.HTMLTemplate)
+	if config.HTMLConfig.Template != "" {
+		tmpl, err = template.New("ecsv").Parse(config.HTMLConfig.Template)
 		if err != nil {
 			return "", fmt.Errorf("%w: %s", ErrCouldntParseHTMLTemplate, err.Error())
 		}

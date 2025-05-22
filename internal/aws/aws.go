@@ -18,7 +18,7 @@ type Config struct {
 	Err    error
 }
 
-func GetConfig(system types.System) (aws.Config, error) {
+func GetConfig(system types.VersionsConfig) (aws.Config, error) {
 	var cfg aws.Config
 	var err error
 	switch system.AWSConfigSourceType {
@@ -43,14 +43,14 @@ func GetConfig(system types.System) (aws.Config, error) {
 	return cfg, err
 }
 
-func FetchSystemVersion(system types.System, awsConfig Config) types.SystemResult {
+func FetchSystemVersion(system types.VersionsConfig, awsConfig Config) types.VersionResult {
 	ecsClient := ecs.NewFromConfig(awsConfig.Config)
 
 	services := make([]string, 1)
 	services[0] = system.ServiceName
 	svcs, err := ecsClient.DescribeServices(context.Background(), &ecs.DescribeServicesInput{Services: services, Cluster: &system.ClusterName})
 	if err != nil {
-		return types.SystemResult{
+		return types.VersionResult{
 			SystemKey: system.Key,
 			Env:       system.Env,
 			Err:       err,
@@ -61,7 +61,7 @@ func FetchSystemVersion(system types.System, awsConfig Config) types.SystemResul
 
 		describeTDOutput, err := ecsClient.DescribeTaskDefinition(context.Background(), &ecs.DescribeTaskDefinitionInput{TaskDefinition: td})
 		if err != nil {
-			return types.SystemResult{
+			return types.VersionResult{
 				SystemKey: system.Key,
 				Env:       system.Env,
 				Err:       err,
@@ -80,7 +80,7 @@ func FetchSystemVersion(system types.System, awsConfig Config) types.SystemResul
 					registeredAt = describeTDOutput.TaskDefinition.RegisteredAt
 				}
 
-				return types.SystemResult{
+				return types.VersionResult{
 					Found:        true,
 					SystemKey:    system.Key,
 					Env:          system.Env,
@@ -90,7 +90,7 @@ func FetchSystemVersion(system types.System, awsConfig Config) types.SystemResul
 			}
 		}
 	}
-	return types.SystemResult{
+	return types.VersionResult{
 		SystemKey: system.Key,
 		Env:       system.Env,
 		Found:     false,

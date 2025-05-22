@@ -10,7 +10,6 @@ import (
 func main() {
 	err := cmd.Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
 		followUp, toFollowUp := cmd.GetErrorFollowUp(err)
 		if !toFollowUp {
 			os.Exit(1)

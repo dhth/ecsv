@@ -3,8 +3,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -14,79 +12,39 @@ import (
 )
 
 var (
-	errInvalidConfigSourceProvided = errors.New("invalid aws-system-source provided")
-	errConfigIsInvalidYAML         = errors.New("config file is not valid YAML")
+	errConfigIsInvalidYAML = errors.New("config file is not valid YAML")
+	errConfigIsInvalid     = errors.New("invalid config provided")
+	errEnvNotInEnvSequence = errors.New("env not present in env-sequence")
 )
 
-type Config struct {
-	EnvSequence []string `yaml:"env-sequence"`
-	Systems     []struct {
-		Key  string `yaml:"key"`
-		Envs []struct {
-			Name            string `yaml:"name"`
-			AwsConfigSource string `yaml:"aws-config-source"`
-			AwsRegion       string `yaml:"aws-region"`
-			Cluster         string `yaml:"cluster"`
-			Service         string `yaml:"service"`
-			ContainerName   string `yaml:"container-name"`
-		} `yaml:"envs"`
-	} `yaml:"systems"`
-}
-
-func expandTilde(path string, homeDir string) string {
-	if strings.HasPrefix(path, "~/") {
-		return filepath.Join(homeDir, path[2:])
-	}
-	return path
-}
-
-func readConfig(configBytes []byte, keyRegex *regexp.Regexp) ([]string, []types.System, error) {
-	cfg := Config{}
-	err := yaml.Unmarshal(configBytes, &cfg)
+func readConfig(configBytes []byte, keyRegex *regexp.Regexp) ([]string, types.Config, error) {
+	var zero types.Config
+	ecsvConfig := types.ECSVConfig{}
+	err := yaml.Unmarshal(configBytes, &ecsvConfig)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%w: %s", errConfigIsInvalidYAML, err.Error())
+		return nil, zero, fmt.Errorf("%w: %s", errConfigIsInvalidYAML, err.Error())
 	}
 
-	var systems []types.System
-
-	for _, system := range cfg.Systems {
-		if keyRegex != nil && !keyRegex.Match([]byte(system.Key)) {
-			continue
+	config, errors := ecsvConfig.Parse(keyRegex)
+	if len(errors) > 0 {
+		errMsgs := make([]string, len(errors))
+		for i, err := range errors {
+			errMsgs[i] = fmt.Sprintf("- %s", err.Error())
 		}
+		return nil, zero, fmt.Errorf("%w; errors:\n%s", errConfigIsInvalid, strings.Join(errMsgs, "\n"))
+	}
 
-		for _, env := range system.Envs {
+	// assert that all envs are present in env-sequence
+	seqMap := make(map[string]bool)
+	for _, s := range ecsvConfig.EnvSequence {
+		seqMap[s] = true
+	}
 
-			var awsConfigType types.AWSConfigSourceType
-			var awsConfigSource string
-			switch {
-			case env.AwsConfigSource == "default":
-				awsConfigType = types.DefaultCfgType
-			case strings.HasPrefix(env.AwsConfigSource, "profile:::"):
-				configElements := strings.Split(env.AwsConfigSource, "profile:::")
-				awsConfigSource = os.ExpandEnv(configElements[len(configElements)-1])
-				awsConfigType = types.SharedCfgProfileType
-			case strings.HasPrefix(env.AwsConfigSource, "assume-role:::"):
-				configElements := strings.Split(env.AwsConfigSource, "assume-role:::")
-				awsConfigSource = os.ExpandEnv(configElements[len(configElements)-1])
-				awsConfigType = types.AssumeRoleCfgType
-			default:
-				return nil,
-					nil,
-					fmt.Errorf("%w: system: %s env: %s", errInvalidConfigSourceProvided,
-						system.Key,
-						env.Name)
-			}
-			systems = append(systems, types.System{
-				Key:                 system.Key,
-				Env:                 env.Name,
-				AWSConfigSourceType: awsConfigType,
-				AWSConfigSource:     awsConfigSource,
-				AWSRegion:           env.AwsRegion,
-				ClusterName:         env.Cluster,
-				ServiceName:         env.Service,
-				ContainerName:       env.ContainerName,
-			})
+	for _, vc := range config.Versions {
+		if !seqMap[vc.Env] {
+			return nil, zero, fmt.Errorf("%w: %s", errEnvNotInEnvSequence, vc.Env)
 		}
 	}
-	return cfg.EnvSequence, systems, nil
+
+	return ecsvConfig.EnvSequence, config, nil
 }
