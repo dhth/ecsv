@@ -2,7 +2,10 @@ package changes
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -10,7 +13,36 @@ import (
 	"github.com/google/go-github/v72/github"
 )
 
+var errCouldntGetTokenFromGH = errors.New("couldn't get token from GitHub's CLI")
+
 const transformPlaceholder = "{{version}}"
+
+func GetGHClient() (*github.Client, error) {
+	var zero *github.Client
+	tokenFromEnv := os.Getenv("GH_TOKEN")
+	if tokenFromEnv != "" {
+		return github.NewClient(nil).WithAuthToken(os.Getenv("GH_TOKEN")), nil
+	}
+
+	tokenFromGH, err := getTokenFromGH()
+	if err != nil {
+		return zero, err
+	}
+
+	client := github.NewClient(nil).WithAuthToken(tokenFromGH)
+	return client, nil
+}
+
+func getTokenFromGH() (string, error) {
+	var zero string
+	cmd := exec.Command("gh", "auth", "token")
+	output, err := cmd.Output()
+	if err != nil {
+		return zero, fmt.Errorf("%w: %s", errCouldntGetTokenFromGH, err.Error())
+	}
+
+	return strings.TrimSpace(string(output)), nil
+}
 
 func FetchChanges(
 	client *github.Client,

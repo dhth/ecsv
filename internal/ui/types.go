@@ -29,6 +29,7 @@ type Config struct {
 	HTMLTemplate     string
 	HTMLTitle        string
 	HTMLTitleURL     string
+	HTMLOpen         bool
 	Style            types.TableStyle
 	ShowRegisteredAt bool
 }

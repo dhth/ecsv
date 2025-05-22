@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"sort"
 	"sync"
 
@@ -13,10 +16,17 @@ import (
 	"github.com/google/go-github/v72/github"
 )
 
+var (
+	errUnsupportedPlatformForHTMLOpen = errors.New("opening HTML output is not supported on this platform")
+	errCouldntRunOpenCmd              = errors.New("couldn't run command for opening local web page")
+	ErrCouldntOpenHTMLOutput          = errors.New("couldn't open HTML output")
+)
+
 func process(
 	config types.Config,
 	uiConfig ui.Config,
 	awsConfigs map[string]aws.Config,
+	ghClient *github.Client,
 	maxConcFetches int,
 ) error {
 	versionResults := make(map[string]map[string]types.VersionResult)
@@ -71,7 +81,6 @@ func process(
 		chSemaphore := make(chan struct{}, maxConcFetches)
 		var changesWg sync.WaitGroup
 
-		client := github.NewClient(nil).WithAuthToken(os.Getenv("GH_TOKEN"))
 		for _, changesConfig := range config.Changes {
 			vrm, ok := versionResults[changesConfig.SystemKey]
 
@@ -109,7 +118,8 @@ func process(
 				defer func() {
 					<-chSemaphore
 				}()
-				changesResultChan <- changes.FetchChanges(client,
+				changesResultChan <- changes.FetchChanges(
+					ghClient,
 					changesConfig,
 					baseRef,
 					headRef)
@@ -136,6 +146,47 @@ func process(
 	if err != nil {
 		return err
 	}
-	fmt.Print(output)
+
+	if uiConfig.OutputFmt == types.HTMLFmt && uiConfig.HTMLOpen {
+		err := writeToTempFileAndOpen(output)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrCouldntOpenHTMLOutput, err.Error())
+		}
+	} else {
+		fmt.Print(output)
+	}
+
+	return nil
+}
+
+func writeToTempFileAndOpen(output string) error {
+	tmpFileTemplate, err := os.CreateTemp("", "ecsv-*.html")
+	defer func() {
+		_ = tmpFileTemplate.Close()
+	}()
+	if err != nil {
+		return err
+	}
+
+	_, err = tmpFileTemplate.WriteString(output)
+	if err != nil {
+		return err
+	}
+
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", tmpFileTemplate.Name())
+	case "linux":
+		cmd = exec.Command("xdg-open", tmpFileTemplate.Name())
+	default:
+		return errUnsupportedPlatformForHTMLOpen
+	}
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w; command output: %s", errCouldntRunOpenCmd, out)
+	}
+
 	return nil
 }

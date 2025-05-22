@@ -10,8 +10,10 @@ import (
 	"strings"
 
 	"github.com/dhth/ecsv/internal/aws"
+	"github.com/dhth/ecsv/internal/changes"
 	"github.com/dhth/ecsv/internal/types"
 	"github.com/dhth/ecsv/internal/ui"
+	"github.com/google/go-github/v72/github"
 )
 
 const (
@@ -27,6 +29,7 @@ var (
 	htmlTemplateFile = flag.String("t", "", "path of the HTML template file to use")
 	htmlTitle        = flag.String("html-title", "ecsv", "title to be used in the html output")
 	htmlTitleURL     = flag.String("html-title-url", "https://github.com/dhth/ecsv", "url the title in the html output should point to")
+	htmlOpen         = flag.Bool("html-open", true, "whether to write the html output to a temporary file and open it")
 	style            = flag.String("style", types.ASCIIStyle.String(), fmt.Sprintf("style to use [possible values: %s]", strings.Join(types.TableStyleStrings(), ", ")))
 	showRegisteredAt = flag.Bool("show-registered-at", true, "whether to show the time when the task definition corresponding to a container was registered")
 	debug            = flag.Bool("debug", false, "whether to show debug information without running ecsv")
@@ -46,6 +49,7 @@ var (
 	errNoSystemsFound            = errors.New("no systems found")
 	errIncorrectStyleProvided    = errors.New("incorrect style provided")
 	errIncorrectKeyRegexProvided = errors.New("incorrect key regex provided")
+	errGithubAuthNotConfigured   = errors.New("couldn't set up a GitHub client")
 )
 
 func Execute() error {
@@ -143,6 +147,14 @@ func Execute() error {
 		return err
 	}
 
+	var ghClient *github.Client
+	if len(config.Changes) > 0 {
+		ghClient, err = changes.GetGHClient()
+		if err != nil {
+			return fmt.Errorf("%w: %w", errGithubAuthNotConfigured, err)
+		}
+	}
+
 	awsConfigs := make(map[string]aws.Config)
 
 	seenSystems := make(map[string]bool)
@@ -172,6 +184,7 @@ func Execute() error {
 		HTMLTemplate:     htmlTemplate,
 		HTMLTitle:        *htmlTitle,
 		HTMLTitleURL:     *htmlTitleURL,
+		HTMLOpen:         *htmlOpen,
 		Style:            tableStyle,
 		ShowRegisteredAt: *showRegisteredAt,
 	}
@@ -183,5 +196,5 @@ func Execute() error {
 		return nil
 	}
 
-	return process(config, uiConfig, awsConfigs, maxConcFetches)
+	return process(config, uiConfig, awsConfigs, ghClient, maxConcFetches)
 }
