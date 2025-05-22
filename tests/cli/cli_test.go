@@ -54,6 +54,7 @@ func TestCLI(t *testing.T) {
 		// GIVEN
 		c := exec.Command(
 			binPath,
+			"check",
 			"--debug",
 			"-c",
 			"assets/config.yml",
