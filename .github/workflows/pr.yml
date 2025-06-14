@@ -74,6 +74,8 @@ jobs:
         run: go test -v ./...
 
   test:
+    needs: changes
+    if: ${{ needs.changes.outputs.code == 'true' }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
