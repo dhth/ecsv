@@ -1,6 +1,6 @@
 # ecsv
 
-[![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/ecsv/build.yml?style=flat-square)](https://github.com/dhth/ecsv/actions/workflows/build.yml)
+[![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/ecsv/main.yml?style=flat-square)](https://github.com/dhth/ecsv/actions/workflows/main.yml)
 [![Vulncheck Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/ecsv/vulncheck.yml?style=flat-square&label=vulncheck)](https://github.com/dhth/ecsv/actions/workflows/vulncheck.yml)
 [![Latest Release](https://img.shields.io/github/release/dhth/ecsv.svg?style=flat-square)](https://github.com/dhth/ecsv/releases/latest)
 [![Commits Since Latest Release](https://img.shields.io/github/commits-since/dhth/ecsv/latest?style=flat-square)](https://github.com/dhth/ecsv/releases)
