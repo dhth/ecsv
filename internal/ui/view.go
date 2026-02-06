@@ -46,7 +46,7 @@ func GetOutput(config Config,
 }
 
 func getTabularOutput(config Config, results map[string]map[string]types.VersionResult) (string, error) {
-	rows := make([][]string, len(results))
+	rows := make([][]string, 0, len(config.SystemKeys))
 
 	for _, sys := range config.SystemKeys {
 		var row []string
@@ -97,7 +97,7 @@ func getTabularOutput(config Config, results map[string]map[string]types.Version
 		rows = append(rows, row)
 	}
 
-	var headers []string
+	headers := make([]string, 0, len(config.EnvSequence)+2)
 	headers = append(headers, "system")
 	headers = append(headers, "in-sync")
 	headers = append(headers, config.EnvSequence...)
@@ -245,7 +245,7 @@ func getHTMLOutput(config Config,
 	versionResults map[string]map[string]types.VersionResult,
 	changesResults []types.ChangesResult,
 ) (string, error) {
-	var columns []string
+	columns := make([]string, 0, len(config.EnvSequence)+1)
 	rows := make([]VersionRow, len(config.SystemKeys))
 
 	data := HTMLData{
