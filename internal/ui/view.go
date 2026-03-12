@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
@@ -154,11 +155,11 @@ type versionInfo struct {
 }
 
 func getTerminalOutput(config Config, results map[string]map[string]types.VersionResult) string {
-	var s string
+	var s strings.Builder
 
-	s += "\n"
-	s += " " + headerStyle.Render("ecsv")
-	s += "\n\n"
+	s.WriteString("\n")
+	s.WriteString(" " + headerStyle.Render("ecsv"))
+	s.WriteString("\n\n")
 
 	var envSt lipgloss.Style
 	var resultSt lipgloss.Style
@@ -171,17 +172,17 @@ func getTerminalOutput(config Config, results map[string]map[string]types.Versio
 		resultSt = resultStyle.Width(22)
 	}
 
-	s += systemStyle.Render("system")
+	s.WriteString(systemStyle.Render("system"))
 
 	for _, env := range config.EnvSequence {
-		s += fmt.Sprintf("%s    ", envSt.Render(env))
+		s.WriteString(fmt.Sprintf("%s    ", envSt.Render(env)))
 	}
-	s += "\n\n"
+	s.WriteString("\n\n")
 	errorIndex := 0
 	var errors []error
 
 	for _, sys := range config.SystemKeys {
-		s += systemStyle.Render(sys)
+		s.WriteString(systemStyle.Render(sys))
 		var versions []versionInfo
 		for _, env := range config.EnvSequence {
 			r, ok := results[sys][env]
@@ -211,34 +212,34 @@ func getTerminalOutput(config Config, results map[string]map[string]types.Versio
 
 		for _, v := range versions {
 			if v.errMsg != "" {
-				s += resultSt.Render(errorStyle.Render(v.errMsg))
+				s.WriteString(resultSt.Render(errorStyle.Render(v.errMsg)))
 			} else if v.notFound {
-				s += resultSt.Render(errorStyle.Render(systemNotFound))
+				s.WriteString(resultSt.Render(errorStyle.Render(systemNotFound)))
 			} else if v.version == "" {
-				s += resultSt.Render("")
+				s.WriteString(resultSt.Render(""))
 			} else {
 				if config.ShowRegisteredAt {
 					duration := int(time.Since(*v.registeredAt).Seconds())
 					durationMsg := fmt.Sprintf("(%s ago)", HumanizeDuration(duration))
-					s += resultSt.Render(fmt.Sprintf("%s %s", style.Render(v.version), durationStyle.Render(durationMsg)))
+					s.WriteString(resultSt.Render(fmt.Sprintf("%s %s", style.Render(v.version), durationStyle.Render(durationMsg))))
 				} else {
-					s += resultSt.Render(style.Render(v.version))
+					s.WriteString(resultSt.Render(style.Render(v.version)))
 				}
 			}
 		}
-		s += "\n"
+		s.WriteString("\n")
 	}
 
 	if len(errors) > 0 {
-		s += "\n"
-		s += errorHeadingStyle.Render("Errors")
-		s += "\n"
+		s.WriteString("\n")
+		s.WriteString(errorHeadingStyle.Render("Errors"))
+		s.WriteString("\n")
 		for index, err := range errors {
-			s += errorDetailStyle.Render(fmt.Sprintf("[%d]: %s", index, err.Error()))
-			s += "\n"
+			s.WriteString(errorDetailStyle.Render(fmt.Sprintf("[%d]: %s", index, err.Error())))
+			s.WriteString("\n")
 		}
 	}
-	return s
+	return s.String()
 }
 
 func getHTMLOutput(config Config,
