@@ -175,7 +175,7 @@ func getTerminalOutput(config Config, results map[string]map[string]types.Versio
 	s.WriteString(systemStyle.Render("system"))
 
 	for _, env := range config.EnvSequence {
-		s.WriteString(fmt.Sprintf("%s    ", envSt.Render(env)))
+		fmt.Fprintf(&s, "%s    ", envSt.Render(env))
 	}
 	s.WriteString("\n\n")
 	errorIndex := 0
