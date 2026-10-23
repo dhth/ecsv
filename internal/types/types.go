@@ -23,6 +23,8 @@ var (
 
 type OutputFmt uint
 
+const defaultFmtName = "default"
+
 const (
 	DefaultFmt OutputFmt = iota
 	TabularFmt
@@ -30,14 +32,14 @@ const (
 )
 
 func OutputFormats() []string {
-	return []string{"default", "table", "html"}
+	return []string{defaultFmtName, "table", "html"}
 }
 
 func (f OutputFmt) String() string {
 	var value string
 	switch f {
 	case DefaultFmt:
-		value = "default"
+		value = defaultFmtName
 	case HTMLFmt:
 		value = "html"
 	case TabularFmt:

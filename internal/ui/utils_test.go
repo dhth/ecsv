@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const testVersion = "v0.1.0"
+
 func TestAllEqual(t *testing.T) {
 	now := time.Now()
 	testCases := []struct {
@@ -17,19 +19,19 @@ func TestAllEqual(t *testing.T) {
 			name: "all versions equal",
 			input: []versionInfo{
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
@@ -53,7 +55,7 @@ func TestAllEqual(t *testing.T) {
 					notFound:     false,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
@@ -71,13 +73,13 @@ func TestAllEqual(t *testing.T) {
 					notFound:     false,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
@@ -89,7 +91,7 @@ func TestAllEqual(t *testing.T) {
 			name: "second version empty",
 			input: []versionInfo{
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
@@ -101,7 +103,7 @@ func TestAllEqual(t *testing.T) {
 					notFound:     false,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
@@ -113,7 +115,7 @@ func TestAllEqual(t *testing.T) {
 			name: "two empty",
 			input: []versionInfo{
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
@@ -167,13 +169,13 @@ func TestAllEqual(t *testing.T) {
 					notFound:     false,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
@@ -185,7 +187,7 @@ func TestAllEqual(t *testing.T) {
 			name: "one not found",
 			input: []versionInfo{
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,
@@ -197,7 +199,7 @@ func TestAllEqual(t *testing.T) {
 					notFound:     true,
 				},
 				{
-					version:      "v0.1.0",
+					version:      testVersion,
 					errMsg:       "",
 					registeredAt: &now,
 					notFound:     false,

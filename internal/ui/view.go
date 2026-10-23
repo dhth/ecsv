@@ -120,16 +120,16 @@ func getTabularOutput(config Config, results map[string]map[string]types.Version
 		tablewriter.WithConfig(tablewriter.Config{
 			Header: tw.CellConfig{
 				Formatting: tw.CellFormatting{
-					Alignment:  tw.AlignRight,
 					AutoWrap:   tw.WrapNone,
 					AutoFormat: tw.Off,
 				},
+				Alignment: tw.CellAlignment{Global: tw.AlignRight},
 			},
 			Row: tw.CellConfig{
 				Formatting: tw.CellFormatting{
-					Alignment: tw.AlignRight,
-					AutoWrap:  tw.WrapNone,
+					AutoWrap: tw.WrapNone,
 				},
+				Alignment: tw.CellAlignment{Global: tw.AlignRight},
 			},
 		}),
 		tablewriter.WithRenderer(renderer.NewBlueprint(tw.Rendition{Symbols: tw.NewSymbols(style)})),
